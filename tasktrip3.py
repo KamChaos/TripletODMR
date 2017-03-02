@@ -139,7 +139,11 @@ pl.ylabel(" B (T)")
 pl.show()
 
 IntensityFFT = fft(Intensity)
-print(Intensity,IntensityFFT)
+#print(Intensity,IntensityFFT)
+
+f = open('check3.txt', 'w')
+print(Intensity,IntensityFFT, file=f)
+f.close
 
 pl.figure()
 pl.pcolor(freq, field, IntensityFFT)
