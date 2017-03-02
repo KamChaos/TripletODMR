@@ -7,6 +7,7 @@ from functools import reduce
 import pandas as pd
 import pylab as pl
 import array
+from scipy.fftpack import fft, ifft
 
 class Rotation:
     """
@@ -137,6 +138,12 @@ pl.xlabel(" Frequency")
 pl.ylabel(" B (G)")
 pl.show()
 
+IntensityFFT = fft(Intensity)
+pl.figure()
+pl.pcolor(freq, field, IntensityFFT)
+pl.xlabel(" Frequency")
+pl.ylabel(" B (G)")
+pl.show()
 """creating dataframe for the prospective theoretical calculations"""
 #вспомогательные чиселки
 a = 91*math.pi/180 #91 градус как предел для фи и тета
