@@ -135,14 +135,16 @@ for i in range(29):
 pl.figure()
 pl.pcolor(freq, field, Intensity)
 pl.xlabel(" Frequency")
-pl.ylabel(" B (G)")
+pl.ylabel(" B (T)")
 pl.show()
 
 IntensityFFT = fft(Intensity)
+print(Intensity,IntensityFFT)
+
 pl.figure()
 pl.pcolor(freq, field, IntensityFFT)
 pl.xlabel(" Frequency")
-pl.ylabel(" B (G)")
+pl.ylabel(" B (T)")
 pl.show()
 """creating dataframe for the prospective theoretical calculations"""
 #вспомогательные чиселки
@@ -161,7 +163,7 @@ iterables = [Phi, Theta]#, Magnetic]
 NumCol = len(Phi)*len(Theta) #number of coloumns in dataframe
 NumRow = len(Magnetic) #number of rows in dataframe
 index = pd.MultiIndex.from_product(iterables, names=['Phi1', 'Theta1'])#, 'Field'])
-Theory = pd.DataFrame(np.random.randn(f,e), index = Magnetic, columns = index) # dataframe
+Theory = pd.DataFrame(np.zeros(f,e), index = Magnetic, columns = index) # dataframe
 
 trp = TripletHamiltonian()
 trp.D = 487.9
