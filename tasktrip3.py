@@ -142,7 +142,7 @@ IntensityFFT = fft(Intensity)
 #print(Intensity,IntensityFFT)
 
 f = open('check3.txt', 'w')
-print(Intensity,IntensityFFT, file=f)
+print(IntensityFFT, file=f)
 f.close
 
 pl.figure()
@@ -167,7 +167,7 @@ iterables = [Phi, Theta]#, Magnetic]
 NumCol = len(Phi)*len(Theta) #number of coloumns in dataframe
 NumRow = len(Magnetic) #number of rows in dataframe
 index = pd.MultiIndex.from_product(iterables, names=['Phi1', 'Theta1'])#, 'Field'])
-Theory = pd.DataFrame(np.zeros(f,e), index = Magnetic, columns = index) # dataframe
+Theory = pd.DataFrame(np.zeros(NumRow,NumCol), index = Magnetic, columns = index) # dataframe
 
 trp = TripletHamiltonian()
 trp.D = 487.9
