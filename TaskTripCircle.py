@@ -133,7 +133,8 @@ Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 
-w = np.zeros(len(Phi)*len(Theta))
+#w = np.zeros(len(Phi)*len(Theta))
+weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
 
 trp = TripletHamiltonian()
 trp.D = 487.9
@@ -148,8 +149,7 @@ for trp.phi in Phi:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
-            index +=1
-            print(index)
+            weights[Phi,Theta] = x1
 #            w += Intensity[trp.B,x1*koef]
 #            w += Intensity[trp.B,x2*koef]
             #print(trp.phi,trp.theta,trp.B,val2, file = f)

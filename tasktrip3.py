@@ -124,8 +124,8 @@ class TripletHamiltonian:
             return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 ################################################
-"""ExpData Plot
-Sam's approach
+"""ExpData Plot Sam's approach
+
 data = np.loadtxt("testupto30up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
 field = np.zeros(29)
 freq = data[:5000,0]
@@ -154,7 +154,8 @@ Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 
-w = np.zeros(len(Phi)*len(Theta))
+#w = np.zeros(len(Phi)*len(Theta))
+weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
 
 trp = TripletHamiltonian()
 trp.D = 487.9
@@ -171,8 +172,7 @@ for trp.phi in Phi:
             x2 = val1[2] - val1[0]
             index +=1
             print(index)
-#            w += Intensity[trp.B,x1*koef]
-#            w += Intensity[trp.B,x2*koef]
+
 
 
 print ('Ya konchil')
