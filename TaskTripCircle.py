@@ -138,11 +138,16 @@ w = np.zeros(len(Phi)*len(Theta))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
+f = open('checkCycle.txt', 'w')
+
 
 for trp.phi in Phi:
     for trp.theta in Theta:
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-            val2 = [(val1[2] - val1[0]), (val1[1] - val1[0])]
-            print(trp.phi,trp.theta,trp.B,val2)
+            x1 = val1[1] - val1[0]
+            x2 = val1[2] - val1[0]
+            print(trp.phi,trp.theta,trp.B,val2, file = f)
 
+
+f.close
