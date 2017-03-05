@@ -15,12 +15,15 @@ iterables = [Phi, Theta]#, Magnetic]
 NumCol = len(Phi)*len(Theta) #number of coloumns in dataframe
 NumRow = len(Magnetic) #number of rows in dataframe
 index = pd.MultiIndex.from_product(iterables, names=['Phi1', 'Theta1'])#, 'Field'])
-Theory = pd.DataFrame(np.random.randn(f,e), index = Magnetic, columns = index) # dataframe
+Theory = pd.DataFrame(np.random.randn(NumRow,NumCol), index = Magnetic, columns = index) # dataframe
 #s = pd.Series(np.random.randn(62775), index=index)
 
-print(daf)
-daf.to_excel('attempt_df1.xlsx', sheet_name='attempt_df')
+#print(Theory)
+#Theory.to_excel('attempt_df2.xlsx', sheet_name='attempt_df')
 #print(len(Phi),len(Theta),len(Magnetic))
+print(Theory[0,[0,0]])
+znach = Theory.loc[0,'Phi','Theta']
+print (znach)
 """
 Предыдущий вариант, который работал:
 iterables = [Phi, Theta, Magnetic]
