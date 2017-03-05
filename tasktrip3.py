@@ -190,7 +190,6 @@ for trp.phi in Phi:
                 if abs(freq[i]-x2) < 2*freqStep:
                     w[index_Phi, index_Theta] += abs(Intensity[index_B, i-1] + Intensity[index_B, i + 1])/2
                     print('w2 =', w[index_Phi,index_Theta])
-
 #            index +=1
             #print(index_B,w[index_Phi,index_Theta])
             index_B += 1
