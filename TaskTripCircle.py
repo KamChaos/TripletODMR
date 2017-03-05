@@ -147,7 +147,8 @@ for trp.phi in Phi:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
-            print(trp.phi,trp.theta,trp.B,val2, file = f)
+            w +=
+            #print(trp.phi,trp.theta,trp.B,val2, file = f)
 
 
 f.close

@@ -138,67 +138,40 @@ pl.xlabel(" Frequency")
 pl.ylabel(" B (T)")
 pl.show()
 
-IntensityFFT = fft(Intensity)
-#print(Intensity,IntensityFFT)
-
-#f = open('check3.txt', 'w')
-#print(IntensityFFT, file=f)
-#f.close
-#index = np.arange(0,len(Intensity),1)
-#df1 = pd.DataFrame(freq, index=index, columns='Freq')
-#df1['Field'] = field
-#df1['Intensity'] = Intensity
-#df1['IntensityFFT'] = IntensityFFT
-#df1.to_excel('Experimental_data.xlsx', sheet_name='attempt_df')
-
-
 pl.figure()
 pl.pcolor(freq, field, IntensityFFT)
 pl.xlabel(" Frequency")
 pl.ylabel(" B (T)")
 pl.show()
-"""creating dataframe for the prospective theoretical calculations"""
-#вспомогательные чиселки
+
+#вспомогательные чиселки для циклов
 a = 91*math.pi/180 #91 градус как предел для фи и тета
-b = a/45 #шаг для фи и тета
-c = 402/30 #шаг для поля
-d = 401+c #предел для поля
+b = a/5#45 #шаг для фи и тета
+c = 30/3#30 #шаг для поля
+d = 29+c #предел для поля
 
 #сами углы и поле
 Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 
-#из углов и поля создаём индексы для датафрейма
-iterables = [Phi, Theta]#, Magnetic]
-NumCol = len(Phi)*len(Theta) #number of coloumns in dataframe
-NumRow = len(Magnetic) #number of rows in dataframe
-index = pd.MultiIndex.from_product(iterables, names=['Phi1', 'Theta1'])#, 'Field'])
-Theory = pd.DataFrame(np.zeros(NumRow,NumCol), index = Magnetic, columns = index) # dataframe
+w = np.zeros(len(Phi)*len(Theta))
 
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-
-"""
-ниже надо ещё разобраться со всем этим безобразием
-т.е. привязать циклы к индексам
-записать значения в датафрейм
-"""
-#v = {} # v- трехмерный словарь со значениями, по сути словарь словарей словарей
+f = open('checkCycle.txt', 'w')
 
 for trp.phi in Phi:
-	dc_by_phi={} #    словарь словарей по theta
-	for trp.theta in Theta:
-		dc_by_theta={} # dc_by_theta уже словарь значений. 
-		for trp.B in Magnetic:
-		   val1 = trp.eval(trp.self, trp.D, trp.E, trp.B, trp.theta,trp.phi,mol_basis=True)
-		   val2 = [(val1[2] - val1[0]), (val1[1] - val1[0])]
-		   dc_by_theta[trp.B]=val2
-		dc_by_phi[trp.theta]=dc_by_theta
-	v[trp.phi]=dc_by_phi
-f = open('check.txt', 'w')
-print(v, file=f)
+    for trp.theta in Theta:
+        for trp.B in Magnetic:
+            val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
+            x1 = val1[1] - val1[0]
+            x2 = val1[2] - val1[0]
+            w +=
+            #print(trp.phi,trp.theta,trp.B,val2, file = f)
+
+
 f.close
  # v[фи][тета ][Б] -  получаем аналог многомерного массива
 
