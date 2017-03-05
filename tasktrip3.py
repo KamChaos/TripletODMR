@@ -150,7 +150,7 @@ pl.show()
 
 #вспомогательные чиселки для циклов
 a = 91*math.pi/180 #91 градус как предел для фи и тета
-b = a/5#45 #шаг для фи и тета
+b = a/45#45 #шаг для фи и тета
 c = 81/28#30 #шаг для поля
 d = 80+c #предел для поля
 
@@ -183,13 +183,13 @@ for trp.phi in Phi:
             index1 = int((x1-freqStart)/freqStep)
             index2 = int((x2-freqStart)/freqStep)
             for i in range(index1-10,index1+10,1):
-                if abs(freq[i]-x1) < 20*freqStep:
+                if abs(freq[i]-x1) < 2*freqStep:
                     w[index_Phi, index_Theta] += abs(Intensity[index_B,i-1]+Intensity[index_B,i+1])/2
-                    #print('w1 =', w)
+                    print('w1 =', w[index_Phi,index_Theta])
             for j in range(index2 - 10, index2 + 10, 1):
-                if abs(freq[i] - x2) < freqStep:
+                if abs(freq[i]-x2) < 2*freqStep:
                     w[index_Phi, index_Theta] += abs(Intensity[index_B, i-1] + Intensity[index_B, i + 1])/2
-                    #print('w2 =', w)
+                    print('w2 =', w[index_Phi,index_Theta])
 
 #            index +=1
             #print(index_B,w[index_Phi,index_Theta])
@@ -214,7 +214,7 @@ for trp.phi in range(0,len(Phi)):
                 #print(w[trp.phi,trp.theta ])
 
 """
-print (np.amax(w))
+print (w,np.amax(w))
 
 
 
