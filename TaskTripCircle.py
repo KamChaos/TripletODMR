@@ -125,8 +125,8 @@ class TripletHamiltonian:
 
 a = 91*math.pi/180 #91 градус как предел для фи и тета
 b = a/5#45 #шаг для фи и тета
-c = 30/3#30 #шаг для поля
-d = 29+c #предел для поля
+c = 81/29#30 #шаг для поля
+d = 80+c #предел для поля
 
 #сами углы и поле
 Phi = np.arange(0,a,b)
@@ -138,17 +138,22 @@ w = np.zeros(len(Phi)*len(Theta))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-f = open('checkCycle.txt', 'w')
-
-
+#f = open('checkCycle.txt', 'w')
+koef = 10^6 #MHz
+#для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
+index = 0
 for trp.phi in Phi:
     for trp.theta in Theta:
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
-            w +=
+            index +=1
+            print(index)
+#            w += Intensity[trp.B,x1*koef]
+#            w += Intensity[trp.B,x2*koef]
             #print(trp.phi,trp.theta,trp.B,val2, file = f)
 
 
-f.close
+#f.close
+print ('Ya konchil')

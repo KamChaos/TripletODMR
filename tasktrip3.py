@@ -124,6 +124,8 @@ class TripletHamiltonian:
             return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 ################################################
+"""ExpData Plot
+Sam's approach
 data = np.loadtxt("testupto30up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
 field = np.zeros(29)
 freq = data[:5000,0]
@@ -131,20 +133,15 @@ Intensity = np.zeros((29,5000))
 for i in range(29):
 	field[i] = np.mean(data[i*5000:(i+1)*5000,1])
 	Intensity[i,:] = data[i*5000:(i+1)*5000,3]
-
-
-
 pl.figure()
 pl.pcolor(freq, field, Intensity)
 pl.xlabel(" Frequency")
 pl.ylabel(" B (T)")
 pl.show()
+"""
+df = pd.read_csv('testupto30_clear.csv')
 
-pl.figure()
-pl.pcolor(freq, field, IntensityFFT)
-pl.xlabel(" Frequency")
-pl.ylabel(" B (T)")
-pl.show()
+
 
 #вспомогательные чиселки для циклов
 a = 91*math.pi/180 #91 градус как предел для фи и тета
@@ -162,30 +159,31 @@ w = np.zeros(len(Phi)*len(Theta))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-f = open('checkCycle.txt', 'w')
 koef = 10^6 #MHz
 #для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
+
+index = 0
 for trp.phi in Phi:
     for trp.theta in Theta:
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
-            w += Intensity[trp.B,x1*koef]
-            w += Intensity[trp.B,x2*koef]
-            #print(trp.phi,trp.theta,trp.B,val2, file = f)
+            index +=1
+            print(index)
+#            w += Intensity[trp.B,x1*koef]
+#            w += Intensity[trp.B,x2*koef]
 
 
-f.close
- # v[фи][тета ][Б] -  получаем аналог многомерного массива
+print ('Ya konchil')
 
 
 
 # получаем набор графиков val2(B) для всех значений theta, phi=0:
-for theta in Theta:
-	mpl.pyplot.plot(Magnetic,[v[0][theta][x][0] for x in Magnetic])#Первый уровень
-	mpl.pyplot.plot(Magnetic,[v[0][theta][x][1] for x in Magnetic])#Второй уровень
-mpl.pyplot.show()
+#for theta in Theta:
+#	mpl.pyplot.plot(Magnetic,[v[0][theta][x][0] for x in Magnetic])#Первый уровень
+#	mpl.pyplot.plot(Magnetic,[v[0][theta][x][1] for x in Magnetic])#Второй уровень
+#mpl.pyplot.show()
  
 
  
