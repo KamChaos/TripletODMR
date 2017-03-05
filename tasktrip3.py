@@ -124,29 +124,34 @@ class TripletHamiltonian:
             return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 ################################################
-"""ExpData Plot Sam's approach
-
+#ExpData Plot Sam's approach
 data = np.loadtxt("testupto30up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
 field = np.zeros(29)
 freq = data[:5000,0]
+freqStart = 1000000
+freqStop = 2500000000
+freqStep = freq[11]-freq[10]
+#print(freq[4999],freqStep)
 Intensity = np.zeros((29,5000))
 for i in range(29):
 	field[i] = np.mean(data[i*5000:(i+1)*5000,1])
 	Intensity[i,:] = data[i*5000:(i+1)*5000,3]
+#print(Intensity[0,0],Intensity[28,0])
+"""
 pl.figure()
 pl.pcolor(freq, field, Intensity)
 pl.xlabel(" Frequency")
 pl.ylabel(" B (T)")
 pl.show()
 """
-df = pd.read_csv('testupto30_clear.csv')
+#df = pd.read_csv('testupto30_clear.csv')
 
 
 
 #вспомогательные чиселки для циклов
 a = 91*math.pi/180 #91 градус как предел для фи и тета
 b = a/5#45 #шаг для фи и тета
-c = 81/29#30 #шаг для поля
+c = 81/28#30 #шаг для поля
 d = 80+c #предел для поля
 
 #сами углы и поле
@@ -154,8 +159,8 @@ Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 
-#w = np.zeros(len(Phi)*len(Theta))
-weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
+w = np.zeros((len(Phi),len(Theta)))
+#weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
 
 trp = TripletHamiltonian()
 trp.D = 487.9
@@ -163,19 +168,53 @@ trp.E = 72.9
 koef = 10^6 #MHz
 #для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
 
-index = 0
+#перевод в индексы по частоте: (2500000000-1000000)/5000=freq[2]-freq[1]=freqStep,
+index_Phi = 0
+#index_Theta = 0
+#index_B = 0
 for trp.phi in Phi:
+    index_Theta = 0
     for trp.theta in Theta:
+        index_B = 0
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
+            x1 = (val1[1] - val1[0])*koef
+            x2 = (val1[2] - val1[0])*koef
+            index1 = int((x1-freqStart)/freqStep)
+            index2 = int((x2-freqStart)/freqStep)
+            for i in range(index1-10,index1+10,1):
+                if abs(freq[i]-x1) < 20*freqStep:
+                    w[index_Phi, index_Theta] += abs(Intensity[index_B,i-1]+Intensity[index_B,i+1])/2
+                    #print('w1 =', w)
+            for j in range(index2 - 10, index2 + 10, 1):
+                if abs(freq[i] - x2) < freqStep:
+                    w[index_Phi, index_Theta] += abs(Intensity[index_B, i-1] + Intensity[index_B, i + 1])/2
+                    #print('w2 =', w)
+
+#            index +=1
+            #print(index_B,w[index_Phi,index_Theta])
+            index_B += 1
+        index_Theta += 1
+    index_Phi += 1
+
+"""
+StepByfreq=(2.500000E+9)/5000
+w = np.zeros((len(Phi), len(Theta)))
+b = df[(df['magnetic'] ==81)]
+print(b['frequency'].as_matrix()[int(416*1e6/StepByfreq)])
+for trp.phi in range(0,len(Phi)):
+    for trp.theta in range(0,len(Theta)):
+        for trp.B in Magnetic:
+            val1 = trp.eval(trp.D, trp.E, trp.B, Theta[trp.theta], Phi[trp.phi], mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
-            index +=1
-            print(index)
+            b = df[(df['magnetic'] ==trp.B)]
+            if len(b['frequency'].as_matrix())>2:
+                w[trp.phi,trp.theta ]+=(b['frequency'].as_matrix()[int(x1*1e5/StepByfreq)])
+                #print(w[trp.phi,trp.theta ])
 
-
-
-print ('Ya konchil')
+"""
+print (np.amax(w))
 
 
 

@@ -21,12 +21,12 @@ def CreateClearFile():
 CreateClearFile()
 
 df = pd.read_csv('testupto30_clear.csv')
-#print(df)
-print('\n b:')
-b = df[(df['magnetic'] ==0.0007)]
-print(b)
+print(df)
+
 
 #plt.plot(b['frequency'][1000:1400],b['intensity'][1000:1400])
-plt.plot(b['frequency'][:1400],b['intensity'][:1400])
-plt.show()
-b['frequency'].max,b['intensity']
+#plt.plot(b['frequency'][:1400],b['intensity'][:1400])
+#plt.show()
+#b['frequency'].max,b['intensity']
+
+#print(len('magnetic'))
