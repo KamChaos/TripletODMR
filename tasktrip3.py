@@ -222,8 +222,10 @@ weights_norm.to_excel('Weights_df_norm.xlsx', sheet_name='attempt_wn_df')
 filecheck = open('checkGlobal.txt', 'w')
 print (w,np.amax(w),np.amax(w_norm),file=filecheck)
 filecheck.close
-attempt = weights.max()
-print(attempt)
+attemptx = weights.idxmax()
+attempty = weights.idxmax(axis=1)
+print(weights.columns,weights.index)
+# print(weights.max(),attemptx)
 
 # получаем набор графиков val2(B) для всех значений theta, phi=0:
 #for theta in Theta:
