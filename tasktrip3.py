@@ -149,7 +149,7 @@ pl.show()
 
 
 #вспомогательные чиселки для циклов
-a = 91*math.pi/180 #91 градус как предел для фи и тета
+a = (90*math.pi/180)*(1/45+1) #91 градус как предел для фи и тета
 b = a/45#45 #шаг для фи и тета
 c = 81/28#30 #шаг для поля
 d = 80+c #предел для поля
@@ -187,13 +187,14 @@ for trp.phi in Phi:
                     w[index_Phi, index_Theta] += abs(Intensity[index_B,i-1]+Intensity[index_B,i+1])/2
                     print('w1 =', w[index_Phi,index_Theta])
             for j in range(index2 - 10, index2 + 10, 1):
-                if abs(freq[i]-x2) < 2*freqStep:
-                    w[index_Phi, index_Theta] += abs(Intensity[index_B, i-1] + Intensity[index_B, i + 1])/2
+                if abs(freq[j]-x2) < 2*freqStep:
+                    w[index_Phi, index_Theta] += abs(Intensity[index_B, j-1] + Intensity[index_B, j + 1])/2
                     print('w2 =', w[index_Phi,index_Theta])
 #            index +=1
             #print(index_B,w[index_Phi,index_Theta])
             index_B += 1
         index_Theta += 1
+        print(index_Theta,index_Phi)
     index_Phi += 1
 
 """
@@ -213,8 +214,10 @@ for trp.phi in range(0,len(Phi)):
                 #print(w[trp.phi,trp.theta ])
 
 """
-print (w,np.amax(w))
-
+np.savetxt("Weights.csv", w, delimiter=",")
+filecheck = open('checkGlobal.txt', 'w')
+print (w,np.amax(w),file=filecheck)
+filecheck.close
 
 
 # получаем набор графиков val2(B) для всех значений theta, phi=0:
