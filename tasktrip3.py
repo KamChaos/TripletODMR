@@ -127,16 +127,15 @@ class TripletHamiltonian:
 #ExpData Plot Sam's approach
 data = np.loadtxt("testupto30up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
 field = np.zeros(29)
-freq = data[:5000,0]
-freqStart = 1000000
-freqStop = 2500000000
+freq = (data[:5000,0])/1e6
+freqStart = freq[0]
+freqStop = freq[4999]
 freqStep = freq[11]-freq[10]
-#print(freq[4999],freqStep)
 Intensity = np.zeros((29,5000))
 for i in range(29):
 	field[i] = np.mean(data[i*5000:(i+1)*5000,1])
 	Intensity[i,:] = data[i*5000:(i+1)*5000,3]
-#print(Intensity[0,0],Intensity[28,0])
+
 """
 pl.figure()
 pl.pcolor(freq, field, Intensity)
@@ -160,41 +159,40 @@ Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 
 w = np.zeros((len(Phi),len(Theta)))
-#weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
+#weights = pd.DataFrame(np.zeros((len(Phi),len(Theta))), index=Phi, columns=Theta)
 
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-koef = 10^6 #MHz
+#koef = 10^6 #MHz
 #для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
 
-#перевод в индексы по частоте: (2500000000-1000000)/5000=freq[2]-freq[1]=freqStep,
 index_Phi = 0
-#index_Theta = 0
-#index_B = 0
+
 for trp.phi in Phi:
     index_Theta = 0
     for trp.theta in Theta:
         index_B = 0
+        weight_sum = 0
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-            x1 = (val1[1] - val1[0])*koef
-            x2 = (val1[2] - val1[0])*koef
+            x1 = (val1[1] - val1[0])
+            x2 = (val1[2] - val1[0])
             index1 = int((x1-freqStart)/freqStep)
             index2 = int((x2-freqStart)/freqStep)
             for i in range(index1-10,index1+10,1):
                 if abs(freq[i]-x1) < 2*freqStep:
-                    w[index_Phi, index_Theta] += abs(Intensity[index_B,i-1]+Intensity[index_B,i+1])/2
-                    print('w1 =', w[index_Phi,index_Theta])
+                    w[index_Phi,index_Theta] += abs(Intensity[index_B,i-1]+Intensity[index_B,i+1])/2
+#                    print('w1=',w[index_Phi,index_Theta], index_B, i, x1, index1, freq[i])
             for j in range(index2 - 10, index2 + 10, 1):
                 if abs(freq[j]-x2) < 2*freqStep:
-                    w[index_Phi, index_Theta] += abs(Intensity[index_B, j-1] + Intensity[index_B, j + 1])/2
-                    print('w2 =', w[index_Phi,index_Theta])
+                    w[index_Phi,index_Theta] += abs(Intensity[index_B, j-1] + Intensity[index_B, j + 1])/2
+                    # \\print('w2 =', w[index_Phi,index_Theta])
 #            index +=1
             #print(index_B,w[index_Phi,index_Theta])
             index_B += 1
         index_Theta += 1
-        print(index_Theta,index_Phi)
+        #print(index_Theta,index_Phi, weight_sum)
     index_Phi += 1
 
 """
@@ -214,11 +212,18 @@ for trp.phi in range(0,len(Phi)):
                 #print(w[trp.phi,trp.theta ])
 
 """
+w_norm = w/56
 np.savetxt("Weights.csv", w, delimiter=",")
+np.savetxt("Weights_norm.csv", w_norm, delimiter=",")
+weights = pd.DataFrame(w, index=Phi, columns=Theta)
+weights_norm = pd.DataFrame(w_norm, index=Phi, columns=Theta)
+weights.to_excel('Weights_df.xlsx', sheet_name='attempt_w_df')
+weights_norm.to_excel('Weights_df_norm.xlsx', sheet_name='attempt_wn_df')
 filecheck = open('checkGlobal.txt', 'w')
-print (w,np.amax(w),file=filecheck)
+print (w,np.amax(w),np.amax(w_norm),file=filecheck)
 filecheck.close
-
+attempt = weights.max()
+print(attempt)
 
 # получаем набор графиков val2(B) для всех значений theta, phi=0:
 #for theta in Theta:

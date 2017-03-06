@@ -142,6 +142,7 @@ trp.E = 72.9
 f = open('checkCycle1.txt', 'w')
 koef = 10^6 #MHz
 #для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
+weights = pd.DataFrame(np.zeros((len(Phi),len(Theta))), index=Phi, columns=Theta)
 index = 0
 for trp.phi in Phi:
     for trp.theta in Theta:
@@ -149,7 +150,7 @@ for trp.phi in Phi:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1 = val1[1] - val1[0]
             x2 = val1[2] - val1[0]
- #           weights[Phi,Theta] = x1
+            weights[Phi,Theta] = x1
 #            w += Intensity[trp.B,x1*koef]
 #            w += Intensity[trp.B,x2*koef]
             print(trp.phi,trp.theta,trp.B,x1,x2, file = f)
