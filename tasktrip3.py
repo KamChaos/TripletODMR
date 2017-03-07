@@ -157,7 +157,8 @@ d = 80+c #предел для поля
 Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
-
+Phi_deg = np.zeros(len(Phi))
+Theta_deg = np.zeros(len(Theta))
 w = np.zeros((len(Phi),len(Theta)))
 #weights = pd.DataFrame(np.zeros((len(Phi),len(Theta))), index=Phi, columns=Theta)
 
@@ -171,7 +172,9 @@ index_Phi = 0
 
 for trp.phi in Phi:
     index_Theta = 0
+    Phi_deg[index_Phi] = round(float((Phi[index_Phi] * 180) / math.pi)) #converting radians to degrees
     for trp.theta in Theta:
+        Theta_deg[index_Theta] = round(float((Theta[index_Theta] * 180) / math.pi)) #converting radians to degrees
         index_B = 0
         weight_sum = 0
         for trp.B in Magnetic:
@@ -215,7 +218,9 @@ for trp.phi in range(0,len(Phi)):
 w_norm = w/56
 np.savetxt("Weights.csv", w, delimiter=",")
 np.savetxt("Weights_norm.csv", w_norm, delimiter=",")
-weights = pd.DataFrame(w, index=Phi, columns=Theta)
+
+
+weights = pd.DataFrame(w, index=Phi_deg, columns=Theta_deg)
 weights_norm = pd.DataFrame(w_norm, index=Phi, columns=Theta)
 weights.to_excel('Weights_df.xlsx', sheet_name='attempt_w_df')
 weights_norm.to_excel('Weights_df_norm.xlsx', sheet_name='attempt_wn_df')
@@ -224,7 +229,7 @@ print (w,np.amax(w),np.amax(w_norm),file=filecheck)
 filecheck.close
 attemptx = weights.idxmax()
 attempty = weights.idxmax(axis=1)
-print(weights.columns,weights.index)
+print(weights.loc[Phi_deg[44],Theta_deg[44]])
 # print(weights.max(),attemptx)
 
 # получаем набор графиков val2(B) для всех значений theta, phi=0:
