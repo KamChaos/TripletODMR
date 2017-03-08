@@ -8,6 +8,10 @@ import pandas as pd
 import pylab as pl
 import array
 from scipy.fftpack import fft, ifft
+import plotly.plotly as py
+import plotly.graph_objs as go
+import plotly
+plotly.tools.set_credentials_file(username='KamChaos', api_key='k2PKL4tCsFPaw9a8dxwq')
 
 class Rotation:
     """
@@ -230,14 +234,7 @@ filecheck.close
 attemptx = weights.idxmax()
 attempty = weights.idxmax(axis=1)
 print(weights.loc[Phi_deg[44],Theta_deg[44]])
-# print(weights.max(),attemptx)
 
-# получаем набор графиков val2(B) для всех значений theta, phi=0:
-#for theta in Theta:
-#	mpl.pyplot.plot(Magnetic,[v[0][theta][x][0] for x in Magnetic])#Первый уровень
-#	mpl.pyplot.plot(Magnetic,[v[0][theta][x][1] for x in Magnetic])#Второй уровень
-#mpl.pyplot.show()
- 
-
- 
-
+#plotting with plotly
+TheoryW = [go.Heatmap( z=weights_norm.values.tolist(), colorscale='Viridis')]
+py.iplot(TheoryW, filename='pandas-heatmap')
