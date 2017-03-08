@@ -11,7 +11,7 @@ from scipy.fftpack import fft, ifft
 import plotly.plotly as py
 import plotly.graph_objs as go
 import plotly
-plotly.tools.set_credentials_file(username='KamChaos', api_key='k2PKL4tCsFPaw9a8dxwq')
+plotly.tools.set_credentials_file(username='***', api_key='***')
 
 class Rotation:
     """
