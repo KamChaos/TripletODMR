@@ -174,6 +174,7 @@ c = 81/28#30 #шаг для поля
 #c = 336/119#30 #шаг для поля
 d = 80+c #предел для поля
 #d = 335+c #предел для поля
+tau = 5
 
 #сами углы и поле
 Phi = np.arange(0,a,b)
@@ -189,6 +190,7 @@ L2 = np.zeros((Np,Na))
 Nb = len(fieldDC2)
 x1 = np.zeros((Na,Nb))
 x2 = np.zeros((Na,Nb))
+LambdaM = np.zeros((Np,Na))
 
 trp = TripletHamiltonian()
 trp.D = 487.9
@@ -198,16 +200,27 @@ trp.E = 72.9
 #12 mT = 336.3 MHz
 
 index_Phi = 0
+index_a = 0
 for trp.phi in Phi:
+    index_Theta = 0
     for trp.theta in Theta:
+        index_B = 0
+        index_p = 0
         for trp.B in Magnetic:
-            # сюда загнать ещё экспериментальное поле
-            for frequency in freqDC2:
-                x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-                x1 = (val1[1] - val1[0])
-                x2 = (val1[2] - val1[0])
-                L1 = frequency - x1
-                L2 = frequency - x2
+            # сюда загнать ещё экспериментальное поле?
+            x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
+            x1[index_a,index_B] += (val1[1] - val1[0])
+            x2[index_a,index_B] += (val1[2] - val1[0])
+            for i in range(len(freqDC2)):
+                L1[index_p,index_a] += freqDC2[i] - x1[index_a,index_B]
+                L2[index_p,index_a] += freqDC2[i] - x2[index_a,index_B]
+                LambdaM [index_p,index_a] += ((((L1[index_p,index_a]/tau)^2)+1)^(-1)) + ((((L2[index_p,index_a]/tau)^2)+1)^(-1))
+                index_p += 1
+            index_B += 1
+        index_a += 1
+        index_Theta += 1
+    index_Phi += 1
+
 
 
 
