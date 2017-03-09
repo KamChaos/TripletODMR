@@ -8,6 +8,10 @@ import pandas as pd
 import pylab as pl
 import array
 from scipy.fftpack import fft, ifft
+import plotly.plotly as py
+import plotly.graph_objs as go
+import plotly
+plotly.tools.set_credentials_file(username='***', api_key='***')
 
 class Rotation:
     """
@@ -123,38 +127,118 @@ class TripletHamiltonian:
         else:
             return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
-a = 91*math.pi/180 #91 градус как предел для фи и тета
-b = a/5#45 #шаг для фи и тета
-c = 81/28#30 #шаг для поля
-d = 80+c #предел для поля
+################################################
+#ExpData Plot Sam's approach
+dataDC11 = np.loadtxt("map416.dat", comments='%')#, usecols=(0,1,3),unpack=True)
+fieldDC11 = np.zeros(200)
+freqDC11 = (dataDC11[:250,0])/1e6
+freqStartDC11 = freqDC11[0]
+freqStopDC11 = freqDC11[249]
+NumPoints11 = 250
+freqStepDC11 = freqDC11[11]-freqDC11[10]
+IntensityDC11 = np.zeros((200,250))
+for i in range(200):
+    fieldDC11[i] = np.mean(dataDC11[i*250:(i+1)*250,1])
+    IntensityDC11[i,:] = dataDC11[i*250:(i+1)*250,3]
+    #print(IntensityDC11[i,:], i)
+
+dataDC12 = np.loadtxt("map200up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
+fieldDC12 = np.zeros(200)
+freqDC12 = (dataDC12[:500,0])/1e6
+freqStartDC12 = freqDC12[0]
+freqStopDC12 = freqDC12[499]
+NumPoints12 = 500
+freqStepDC12 = freqDC12[11]-freqDC12[10]
+IntensityDC12 = np.zeros((200,500))
+for i in range(200):
+    fieldDC12[i] = np.mean(dataDC12[i*500:(i+1)*500,1])
+    IntensityDC12[i,:] = dataDC12[i*500:(i+1)*500,3]
+    #print(IntensityDC12[i, :], i)
+
+"""
+pl.figure()
+pl.pcolor(freqDC2, fieldDC2, IntensityDC2)
+pl.xlabel(" Frequency")
+pl.ylabel(" B (T)")
+pl.show()
+"""
+
+#вспомогательные чиселки для циклов
+a = (90*math.pi/180)*(1/45+1) #91 градус как предел для фи и тета
+b = a/45#45 #шаг для фи и тета
+c = 558/198
+d = 557+c #предел для поля
 
 #сами углы и поле
 Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
-
-#w = np.zeros(len(Phi)*len(Theta))
-#weights = pd.DataFrame(np.zeros(len(Phi),len(Theta)), index=Phi, columns=Theta)
+Phi_deg = np.zeros(len(Phi))
+Theta_deg = np.zeros(len(Theta))
+w = np.zeros((len(Phi),len(Theta)))
 
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-f = open('checkCycle1.txt', 'w')
-koef = 10^6 #MHz
 #для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
-weights = pd.DataFrame(np.zeros((len(Phi),len(Theta))), index=Phi, columns=Theta)
-index = 0
+#19.9 mT = 557.7 MHz
+
+index_Phi = 0
 for trp.phi in Phi:
+    index_Theta = 0
+    Phi_deg[index_Phi] = round(float((Phi[index_Phi] * 180) / math.pi)) #converting radians to degrees
     for trp.theta in Theta:
+        Theta_deg[index_Theta] = round(float((Theta[index_Theta] * 180) / math.pi)) #converting radians to degrees
+        index_B = 0
+        weight_sum = 0
         for trp.B in Magnetic:
             val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-            x1 = val1[1] - val1[0]
-            x2 = val1[2] - val1[0]
-            weights[Phi,Theta] = x1
-#            w += Intensity[trp.B,x1*koef]
-#            w += Intensity[trp.B,x2*koef]
-            print(trp.phi,trp.theta,trp.B,x1,x2, file = f)
+            x1 = (val1[1] - val1[0])
+            x2 = (val1[2] - val1[0])
+            index1 = int((x1-freqStartDC11)/freqStepDC11)
+            index2 = int((x2-freqStartDC12)/freqStepDC12)
+
+            for i in range(index1-10,index1+10,1):
+                #if abs(freqDC2[i]-x1) < 2*freqStepDC2:
+                if i < (NumPoints11-1):
+                    if abs(freqDC11[i]-x1) < 2*freqStepDC11:
+                        w[index_Phi,index_Theta] += abs(IntensityDC11[index_B,i-1]+IntensityDC11[index_B,i+1])/2
+            for j in range(index2 - 10, index2 + 10, 1):
+                if j < (NumPoints12-1):
+                    if abs(freqDC12[j]-x2) < 2*freqStepDC12:
+                        w[index_Phi,index_Theta] += abs(IntensityDC12[index_B, j-1] + IntensityDC12[index_B, j + 1])/2
+            index_B += 1
+        index_Theta += 1
+    index_Phi += 1
+
+w_norm = w/400
+
+"""
+np.savetxt("Weights.csv", w, delimiter=",")
+np.savetxt("Weights_norm.csv", w_norm, delimiter=",")
 
 
-f.close
-print ('Ya zakonchil')
+weights = pd.DataFrame(w, index=Phi_deg, columns=Theta_deg)
+weights_norm = pd.DataFrame(w_norm, index=Phi, columns=Theta)
+weights.to_excel('Weights_df.xlsx', sheet_name='attempt_w_df')
+weights_norm.to_excel('Weights_df_norm.xlsx', sheet_name='attempt_wn_df')
+filecheck = open('checkGlobal.txt', 'w')
+print (w,np.amax(w),np.amax(w_norm),file=filecheck)
+filecheck.close
+attemptx = weights.idxmax()
+attempty = weights.idxmax(axis=1)
+print(weights.loc[Phi_deg[44],Theta_deg[44]])
+
+
+#plotting with plotly
+TheoryW = [go.Heatmap( z=weights_norm.values.tolist(), colorscale='Viridis')]
+py.iplot(TheoryW, filename='pandas-heatmap')
+"""
+
+#dat file for gnuplotting
+gnufile = open('DC1_416_550_weights.dat','w')
+for i in range(len(Phi_deg)):
+    for j in range(len(Theta_deg)):
+        print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/400, file=gnufile)
+    print("", file=gnufile)
+gnufile.close
