@@ -215,7 +215,7 @@ for trp.phi in Phi:
         index_Theta += 1
     index_Phi += 1
 
-#w_norm = w/56
+#w_norm = w/58
 w_norm = w/240
 
 

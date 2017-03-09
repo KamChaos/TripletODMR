@@ -187,7 +187,7 @@ Na = len(Phi)*len(Theta)
 Np = IntensityDC2.size
 Nb = len(fieldDC2)
 
-w = np.zeros((len(Phi),len(Theta)))
+w = np.zeros(Na)
 L1 = np.zeros((Np,Na))
 L2 = np.zeros((Np,Na))
 x1 = np.zeros((Na,Nb))
@@ -211,24 +211,32 @@ for trp.phi in Phi:
         for trp.B in Magnetic:
             # сюда загнать ещё экспериментальное поле?
             x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-            x1[index_a,index_B] += (val1[1] - val1[0])
-            x2[index_a,index_B] += (val1[2] - val1[0])
-            index1 = int((x1-freqStartDC2)/freqStepDC2)
-            index2 = int((x2-freqStartDC2)/freqStepDC2)
+            x1[index_a,index_B] += (x[1] - x[0])
+            x2[index_a,index_B] += (x[2] - x[0])
+            index1 = int((x1[index_a,index_B]-freqStartDC2)/freqStepDC2)
+            index2 = int((x2[index_a,index_B]-freqStartDC2)/freqStepDC2)
             for i in range(index1-10,index1+10,1):
-                if abs(freqDC2[i]-x1) < 2*freqStepDC2:
-                    w[index_Phi,index_Theta] += abs(IntensityDC2[index_B, i-1] + IntensityDC2[index_B, i+1])/2
+                if abs(freqDC2[i]-x1[index_a,index_B]) < 2*freqStepDC2:
+                    w[index_a] += abs(IntensityDC2[index_B, i-1] + IntensityDC2[index_B, i+1])/2
             for j in range(index2 - 10, index2 + 10, 1):
-                if abs(freqDC2[j]-x2) < 2*freqStepDC2:
-                    w[index_Phi,index_Theta] += abs(IntensityDC2[index_B, j-1] + IntensityDC2[index_B, j+1])/2
+                if abs(freqDC2[j]-x2[index_a,index_B]) < 2*freqStepDC2:
+                    w[index_a] += abs(IntensityDC2[index_B, j-1] + IntensityDC2[index_B, j+1])/2
             for i in range(len(freqDC2)):
                 L1[index_p,index_a] += freqDC2[i] - x1[index_a,index_B]
                 L2[index_p,index_a] += freqDC2[i] - x2[index_a,index_B]
-                LambdaM [index_p,index_a] += ((((L1[index_p,index_a]/tau)^2)+1)^(-1)) + ((((L2[index_p,index_a]/tau)^2)+1)^(-1))
+                print(L1[index_p,index_a], L2[index_p,index_a],index_a )
+                LambdaM [index_p,index_a] += (1/(((L1[index_p,index_a]/tau)**2)+1)) + (1/(((L2[index_p,index_a]/tau)**2)+1))
                 index_p += 1
             index_B += 1
         index_a += 1
         index_Theta += 1
     index_Phi += 1
 
+wnorm = w/58
 LamInv = np.linalg.pinv(LambdaM)
+print(wnorm)
+
+"""
+дальше нужно минимизировать норму от
+LamInv*IntensityDC2.flat = wnorm
+"""
