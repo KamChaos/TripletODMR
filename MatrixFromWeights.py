@@ -182,12 +182,14 @@ Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
 Phi_deg = np.zeros(len(Phi))
 Theta_deg = np.zeros(len(Theta))
+
 Na = len(Phi)*len(Theta)
 Np = IntensityDC2.size
+Nb = len(fieldDC2)
+
 w = np.zeros((len(Phi),len(Theta)))
 L1 = np.zeros((Np,Na))
 L2 = np.zeros((Np,Na))
-Nb = len(fieldDC2)
 x1 = np.zeros((Na,Nb))
 x2 = np.zeros((Na,Nb))
 LambdaM = np.zeros((Np,Na))
@@ -211,6 +213,14 @@ for trp.phi in Phi:
             x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
             x1[index_a,index_B] += (val1[1] - val1[0])
             x2[index_a,index_B] += (val1[2] - val1[0])
+            index1 = int((x1-freqStartDC2)/freqStepDC2)
+            index2 = int((x2-freqStartDC2)/freqStepDC2)
+            for i in range(index1-10,index1+10,1):
+                if abs(freqDC2[i]-x1) < 2*freqStepDC2:
+                    w[index_Phi,index_Theta] += abs(IntensityDC2[index_B, i-1] + IntensityDC2[index_B, i+1])/2
+            for j in range(index2 - 10, index2 + 10, 1):
+                if abs(freqDC2[j]-x2) < 2*freqStepDC2:
+                    w[index_Phi,index_Theta] += abs(IntensityDC2[index_B, j-1] + IntensityDC2[index_B, j+1])/2
             for i in range(len(freqDC2)):
                 L1[index_p,index_a] += freqDC2[i] - x1[index_a,index_B]
                 L2[index_p,index_a] += freqDC2[i] - x2[index_a,index_B]
@@ -221,67 +231,4 @@ for trp.phi in Phi:
         index_Theta += 1
     index_Phi += 1
 
-
-
-
-for trp.phi in Phi:
-    index_Theta = 0
-    Phi_deg[index_Phi] = round(float((Phi[index_Phi] * 180) / math.pi)) #converting radians to degrees
-    for trp.theta in Theta:
-        Theta_deg[index_Theta] = round(float((Theta[index_Theta] * 180) / math.pi)) #converting radians to degrees
-        index_B = 0
-        weight_sum = 0
-        for trp.B in Magnetic:
-            for Frequency in freqDC2:
-                val1 = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-                x1 = (val1[1] - val1[0])
-                x2 = (val1[2] - val1[0])
-                index1 = int((x1 - freqStartDC2) / freqStepDC2)
-                index2 = int((x2 - freqStartDC2) / freqStepDC2)
-                for i in range(index1 - 10, index1 + 10, 1):
-                    if abs(freqDC2[i] - x1) < 2 * freqStepDC2:
-                        w[index_Phi, index_Theta] += abs(
-                            IntensityDC2[index_B, i - 1] + IntensityDC2[index_B, i + 1]) / 2
-                for j in range(index2 - 10, index2 + 10, 1):
-                    if abs(freqDC2[j] - x2) < 2 * freqStepDC2:
-                        w[index_Phi, index_Theta] += abs(
-                            IntensityDC2[index_B, j - 1] + IntensityDC2[index_B, j + 1]) / 2
-
-            index_B += 1
-        index_Theta += 1
-    index_Phi += 1
-
-w_norm = w/56
-#w_norm = w/240
-
-
-"""
-np.savetxt("Weights.csv", w, delimiter=",")
-np.savetxt("Weights_norm.csv", w_norm, delimiter=",")
-
-
-weights = pd.DataFrame(w, index=Phi_deg, columns=Theta_deg)
-weights_norm = pd.DataFrame(w_norm, index=Phi, columns=Theta)
-weights.to_excel('Weights_df.xlsx', sheet_name='attempt_w_df')
-weights_norm.to_excel('Weights_df_norm.xlsx', sheet_name='attempt_wn_df')
-filecheck = open('checkGlobal.txt', 'w')
-print (w,np.amax(w),np.amax(w_norm),file=filecheck)
-filecheck.close
-attemptx = weights.idxmax()
-attempty = weights.idxmax(axis=1)
-print(weights.loc[Phi_deg[44],Theta_deg[44]])
-
-
-#plotting with plotly
-TheoryW = [go.Heatmap( z=weights_norm.values.tolist(), colorscale='Viridis')]
-py.iplot(TheoryW, filename='pandas-heatmap')
-"""
-
-gnufile = open('DC2_123weights.dat','w')
-
-for i in range(len(Phi_deg)):
-    for j in range(len(Theta_deg)):
-        #print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
-        print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/240, file=gnufile)
-    print("", file=gnufile)
-gnufile.close
+LamInv = np.linalg.pinv(LambdaM)
