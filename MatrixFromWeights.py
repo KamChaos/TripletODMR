@@ -142,7 +142,7 @@ for i in range(29):
 
 
 #вспомогательные чиселки для циклов
-dA = 5 #45
+dA = 20 #45
 a = math.radians(90)*(1/dA+1) #91 градус как предел для фи и тета
 b = a/dA#45 #шаг для фи и тета
 c = 81/28#30 #шаг для поля
@@ -218,7 +218,7 @@ for i in range(765):
 for i in range(len(Phi_deg)):
     for j in range(len(Theta_deg)):
         #print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
-        print(Phi_deg[i],'  ', Theta_deg[j], '  ', pMatrix[i,j]/240, file=gnufile2)
+        print(Phi_deg[i],'  ', Theta_deg[j], '  ', pMatrix[i,j], file=gnufile2)
     print("", file=gnufile2)
 
 gnufile1.close
