@@ -4,14 +4,11 @@ import cmath
 import math
 import sys
 from functools import reduce
-import pandas as pd
-import pylab as pl
+#import pandas as pd
+#import pylab as pl
 import array
-from scipy.fftpack import fft, ifft
-import plotly.plotly as py
-import plotly.graph_objs as go
-import plotly
-plotly.tools.set_credentials_file(username='***', api_key='***')
+#from scipy.fftpack import fft, ifft
+
 
 class Rotation:
     """
@@ -133,43 +130,21 @@ class TripletHamiltonian:
 
 dataDC2 = np.loadtxt("testupto30up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
 fieldDC2 = np.zeros(29)
-freqDC2 = (dataDC2[:5000,0])/1e6
+freqDC2 = (dataDC2[650:1415,0])/1e6
 freqStartDC2 = freqDC2[0]
-NumPoints = 5000
-freqStopDC2 = freqDC2[4999]
+NumPoints = 765
+freqStopDC2 = freqDC2[764]
 freqStepDC2 = freqDC2[11]-freqDC2[10]
-IntensityDC2 = np.zeros((29,5000))
+IntensityDC2 = np.zeros((29,765))
 for i in range(29):
 	fieldDC2[i] = np.mean(dataDC2[i*5000:(i+1)*5000,1])
-	IntensityDC2[i,:] = dataDC2[i*5000:(i+1)*5000,3]
-"""
-dataDC2 = np.loadtxt("test123up.txt", comments='%')#, usecols=(0,1,3),unpack=True)
-fieldDC2 = np.zeros(120)
-freqDC2 = (dataDC2[:2500,0])/1e6
-freqStartDC2 = freqDC2[0]
-NumPoints = 2500
-freqStopDC2 = freqDC2[2499]
-freqStepDC2 = freqDC2[11]-freqDC2[10]
-IntensityDC2 = np.zeros((120,2500))
-for i in range(120):
-        fieldDC2[i] = np.mean(dataDC2[i * 2500:(i + 1) * 2500, 1])
-        IntensityDC2[i, :] = dataDC2[i * 2500:(i + 1) * 2500, 3]
-        print(IntensityDC2[i, :], i)
-"""
-"""
-pl.figure()
-pl.pcolor(freqDC2, fieldDC2, IntensityDC2)
-pl.xlabel(" Frequency")
-pl.ylabel(" B (T)")
-pl.show()
-"""
-#df = pd.read_csv('testupto30_clear.csv')
-
+	IntensityDC2[i,:] = dataDC2[i*5000+650:i*5000+1415,3]
 
 
 #вспомогательные чиселки для циклов
-a = (90*math.pi/180)*(1/45+1) #91 градус как предел для фи и тета
-b = a/45#45 #шаг для фи и тета
+dA = 5 #45
+a = math.radians(90)*(1/dA+1) #91 градус как предел для фи и тета
+b = a/dA#45 #шаг для фи и тета
 c = 81/28#30 #шаг для поля
 #c = 336/119#30 #шаг для поля
 d = 80+c #предел для поля
@@ -187,11 +162,6 @@ Na = len(Phi)*len(Theta)
 Np = IntensityDC2.size
 Nb = len(fieldDC2)
 
-w = np.zeros(Na)
-L1 = np.zeros((Np,Na))
-L2 = np.zeros((Np,Na))
-x1 = np.zeros((Na,Nb))
-x2 = np.zeros((Na,Nb))
 LambdaM = np.zeros((Np,Na))
 
 trp = TripletHamiltonian()
@@ -205,38 +175,57 @@ index_Phi = 0
 index_a = 0
 for trp.phi in Phi:
     index_Theta = 0
+    Phi_deg[index_Phi] = round(math.degrees(Phi[index_Phi]))
     for trp.theta in Theta:
         index_B = 0
         index_p = 0
-        for trp.B in Magnetic:
-            # сюда загнать ещё экспериментальное поле?
-            x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-            x1[index_a,index_B] += (x[1] - x[0])
-            x2[index_a,index_B] += (x[2] - x[0])
-            index1 = int((x1[index_a,index_B]-freqStartDC2)/freqStepDC2)
-            index2 = int((x2[index_a,index_B]-freqStartDC2)/freqStepDC2)
-            for i in range(index1-10,index1+10,1):
-                if abs(freqDC2[i]-x1[index_a,index_B]) < 2*freqStepDC2:
-                    w[index_a] += abs(IntensityDC2[index_B, i-1] + IntensityDC2[index_B, i+1])/2
-            for j in range(index2 - 10, index2 + 10, 1):
-                if abs(freqDC2[j]-x2[index_a,index_B]) < 2*freqStepDC2:
-                    w[index_a] += abs(IntensityDC2[index_B, j-1] + IntensityDC2[index_B, j+1])/2
-            for i in range(len(freqDC2)):
-                L1[index_p,index_a] += freqDC2[i] - x1[index_a,index_B]
-                L2[index_p,index_a] += freqDC2[i] - x2[index_a,index_B]
-                print(L1[index_p,index_a], L2[index_p,index_a],index_a )
-                LambdaM [index_p,index_a] += (1/(((L1[index_p,index_a]/tau)**2)+1)) + (1/(((L2[index_p,index_a]/tau)**2)+1))
+        #print(index_a)
+        Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
+        for i in range(len(freqDC2)):
+            for trp.B in Magnetic:
+                x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
+                x1 = (x[1] - x[0])
+                x2 = (x[2] - x[0])
+                L1 = freqDC2[i] - x1
+                L2 = freqDC2[i] - x2
+                LambdaM[index_p, index_a] = ((1 / (math.pow((L1 / tau),2) + 1)) + (1 / (math.pow((L2 / tau), 2) + 1)))*math.sin(trp.theta)
                 index_p += 1
-            index_B += 1
+                index_B += 1
         index_a += 1
         index_Theta += 1
     index_Phi += 1
 
-wnorm = w/58
 LamInv = np.linalg.pinv(LambdaM)
-print(wnorm)
+Experiment = IntensityDC2.flat
+pVec = np.dot(LamInv,Experiment)
+#print(pVec.size)
+#print('done')
 
+#считать значения весов из файла
+pMatrix = np.reshape(pVec,(len(Phi),len(Theta)))
+gnufile1 = open('TheoryFromWeights.dat','w')
+gnufile2 = open('MatrixFromWeights.dat','w')
+TheoryVec = np.dot(LambdaM, pVec)
+TheoryMatr = np.reshape(TheoryVec,(765,29))
+
+
+for i in range(765):
+    for j in range(29):
+        print(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i,j], file=gnufile1)
+    print("", file=gnufile1)
+
+
+for i in range(len(Phi_deg)):
+    for j in range(len(Theta_deg)):
+        #print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
+        print(Phi_deg[i],'  ', Theta_deg[j], '  ', pMatrix[i,j]/240, file=gnufile2)
+    print("", file=gnufile2)
+
+gnufile1.close
+gnufile2.close
+
+#евклидова норма math.hyp(x, y)
 """
 дальше нужно минимизировать норму от
-LamInv*IntensityDC2.flat = wnorm
+LamInv*IntensityDC2.flat - wnorm
 """
