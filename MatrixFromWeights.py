@@ -142,7 +142,7 @@ for i in range(29):
 
 
 #вспомогательные чиселки для циклов
-dA = 20 #45
+dA = 5 #45
 a = math.radians(90)*(1/dA+1) #91 градус как предел для фи и тета
 b = a/dA#45 #шаг для фи и тета
 c = 81/28#30 #шаг для поля
@@ -183,9 +183,9 @@ for trp.phi in Phi:
         Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
         for i in range(len(freqDC2)):
             for trp.B in Magnetic:
-                x = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-                x1 = (x[1] - x[0])
-                x2 = (x[2] - x[0])
+                vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
+                x1 = (vals[1].real - vals[0].real)
+                x2 = (vals[2].real - vals[0].real)
                 L1 = freqDC2[i] - x1
                 L2 = freqDC2[i] - x2
                 LambdaM[index_p, index_a] = ((1 / (math.pow((L1 / tau),2) + 1)) + (1 / (math.pow((L2 / tau), 2) + 1)))*math.sin(trp.theta)
@@ -195,16 +195,17 @@ for trp.phi in Phi:
         index_Theta += 1
     index_Phi += 1
 
-LamInv = np.linalg.pinv(LambdaM)
+LamInv = np.linalg. pinv(LambdaM)
 Experiment = IntensityDC2.flat
 pVec = np.dot(LamInv,Experiment)
 #print(pVec.size)
 #print('done')
 
 #считать значения весов из файла
+
 pMatrix = np.reshape(pVec,(len(Phi),len(Theta)))
-gnufile1 = open('TheoryFromWeights.dat','w')
-gnufile2 = open('MatrixFromWeights.dat','w')
+gnufile1 = open('TheoryFromWeights5.dat','w')
+gnufile2 = open('MatrixFromWeights5.dat','w')
 TheoryVec = np.dot(LambdaM, pVec)
 TheoryMatr = np.reshape(TheoryVec,(765,29))
 
