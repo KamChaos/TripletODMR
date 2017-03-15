@@ -120,9 +120,9 @@ class TripletHamiltonian:
 
     def eval(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
-            return np.linalg.eigvalsh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+            return np.linalg.eig(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
-            return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
+            return np.linalg.eig(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 ################################################
 #ExpData Plot Sam's approach
