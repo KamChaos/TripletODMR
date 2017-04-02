@@ -135,7 +135,9 @@ def main():
     freqStopDC2 = freqDC2[764]
     freqStepDC2 = freqDC2[11] - freqDC2[10]
     IntensityDC2 = np.zeros((29, 765))
-    for i in range(29):
+
+    # http://python3porting.com/differences.html#range-and-xrange
+    for i in xrange(29):
         fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
         IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
         print i
@@ -143,7 +145,9 @@ def main():
     dA = 5  # 45
     a = math.radians(90) * (1 / dA + 1)  # 91 degree for theta and phi
     b = a / dA  # 45 #step for angles
-    c = 81 / 28  # 30 #field step
+
+    # http://stackoverflow.com/a/2958717/1032286
+    c = 81.0 / 28.0  # 30 #field step
     # c = 336/119#30 #field step
     d = 80 + c  # field limit
     # d = 335+c #field limit
@@ -183,7 +187,7 @@ def main():
             index_p = 0
             # print(index_a)
             Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
-            for i in range(len(freqDC2)):
+            for i in xrange(len(freqDC2)):
                 for trp.B in Magnetic:
                     print i, trp.B
                     vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
@@ -217,15 +221,15 @@ def main():
     TheoryVec = np.dot(LambdaM, pVec)
     TheoryMatr = np.reshape(TheoryVec, (765, 29))
 
-    for i in range(765):
-        for j in range(29):
+    for i in xrange(765):
+        for j in xrange(29):
             gnufile1.write(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i][j])
             # print(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i,j], file=gnufile1)
         gnufile1.write("")
         # print("", file=gnufile1)
 
-    for i in range(len(Phi_deg)):
-        for j in range(len(Theta_deg)):
+    for i in xrange(len(Phi_deg)):
+        for j in xrange(len(Theta_deg)):
             # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
             gnufile2.write(Phi_deg[i], '  ', Theta_deg[j], '  ', pMatrix[i][j])
             # print(Phi_deg[i],'  ', Theta_deg[j], '  ', pMatrix[i,j], file=gnufile2)
