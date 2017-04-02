@@ -115,7 +115,7 @@ class TripletHamiltonian:
         return self.fine_structure(D, E) + self.zeeman(Bx, By, Bz)
 
     def spin_hamiltonian_field_basis(self, D, E, B, theta, phi):
-        return self.fine_structure(D, E, Rotatino(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
+        return self.fine_structure(D, E, Rotation(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
 
     def eval(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
@@ -141,7 +141,7 @@ def main():
         fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
         IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-    dA = 5  # 45
+    dA = 20  # 45
     a = math.radians(90) * (1 / dA + 1)  # 91 degree for theta and phi
     b = a / dA  # 45 #step for angles
 
@@ -157,9 +157,7 @@ def main():
     Phi_deg = np.zeros(len(Phi))
     Theta_deg = np.zeros(len(Theta))
 
-    lP = len(Phi)
-    lT = len(Theta)
-    Na = lP * lT
+    Na = len(Phi) * len(Theta)
     Np = IntensityDC2.size
     Nb = len(fieldDC2)
 
@@ -187,12 +185,7 @@ def main():
                     vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
                     x1 = (vals[1].real - vals[0].real)
                     x2 = (vals[2].real - vals[0].real)
-                    L1 = freqDC2[i] - x1
-                    L2 = freqDC2[i] - x2
-                    iks1 = (1 / (math.pow((L1 / tau), 2) + 1))
-                    iks2 = (1 / (math.pow((L2 / tau), 2) + 1))
-                    iks3 = np.sin(trp.theta)
-                    LambdaM[index_p][index_a] = (iks1 + iks2) * iks3
+                    LambdaM[index_p][index_a] = ((1 / (math.pow(((freqDC2[i] - x1)/ tau), 2) + 1)) + (1 / (math.pow(((freqDC2[i] - x2) / tau), 2) + 1))) * np.sin(trp.theta)
                     index_p += 1
                     index_B += 1
             index_a += 1
@@ -206,8 +199,8 @@ def main():
     # read weights from a file
 
     pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-    gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
-    gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
+    gnufile1 = open('2TheoryFromWeights20.dat', 'w+')
+    gnufile2 = open('2MatrixFromWeights20.dat', 'w+')
     TheoryVec = np.dot(LambdaM, pVec)
     TheoryMatr = np.reshape(TheoryVec, (765, 29))
 

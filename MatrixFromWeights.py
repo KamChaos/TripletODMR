@@ -124,7 +124,7 @@ class TripletHamiltonian:
         return self.fine_structure(D, E) + self.zeeman(Bx, By, Bz)
 
     def spin_hamiltonian_field_basis(self, D, E, B, theta, phi):
-        return self.fine_structure(D, E, Rotatino(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
+        return self.fine_structure(D, E, Rotation(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
 
     def eval(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
