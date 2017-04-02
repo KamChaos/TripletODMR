@@ -237,17 +237,17 @@ for i in range(29):
 	IntensityDC2[i,:] = dataDC2[i*5000+650:i*5000+1415,3]
 
 
-#вспомогательные чиселки для циклов
+
 dA = 5 #45
-a = math.radians(90)*(1/dA+1) #91 градус как предел для фи и тета
-b = a/dA#45 #шаг для фи и тета
-c = 81/28#30 #шаг для поля
-#c = 336/119#30 #шаг для поля
-d = 80+c #предел для поля
-#d = 335+c #предел для поля
+a = math.radians(90)*(1/dA+1) #91 degree for theta and phi
+b = a/dA#45 #step for angles
+c = 81/28#30 #field step
+#c = 336/119#30 #field step
+d = 80+c #field limit
+#d = 335+c #field limit
 tau = 5
 
-#сами углы и поле
+#angles and field
 Phi = np.arange(0,a,b)
 Theta = np.arange(0,a,b)
 Magnetic = np.arange(0,d,c)
@@ -263,7 +263,7 @@ LambdaM = np.zeros((Np,Na))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-#для магнитного поля Бэ: 2.9 мТл = 81.27236559069694 МГц
+#for B: 2.9 mT = 81.27236559069694 MHz
 #19.9 mT = 557.7 MHz
 #12 mT = 336.3 MHz
 
@@ -297,7 +297,7 @@ pVec = np.dot(LamInv,Experiment)
 #print(pVec.size)
 #print('done')
 
-#считать значения весов из файла
+#read weights from a file
 
 pMatrix = np.reshape(pVec,(len(Phi),len(Theta)))
 gnufile1 = open('TheoryFromWeights5.dat','w')
@@ -321,8 +321,3 @@ for i in range(len(Phi_deg)):
 gnufile1.close
 gnufile2.close
 
-#евклидова норма math.hyp(x, y)
-"""
-дальше нужно минимизировать норму от
-LamInv*IntensityDC2.flat - wnorm
-"""
