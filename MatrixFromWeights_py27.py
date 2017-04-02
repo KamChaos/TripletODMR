@@ -140,7 +140,6 @@ def main():
     for i in xrange(29):
         fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
         IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
-        print i
 
     dA = 5  # 45
     a = math.radians(90) * (1 / dA + 1)  # 91 degree for theta and phi
@@ -148,9 +147,7 @@ def main():
 
     # http://stackoverflow.com/a/2958717/1032286
     c = 81.0 / 28.0  # 30 #field step
-    # c = 336/119#30 #field step
     d = 80 + c  # field limit
-    # d = 335+c #field limit
     tau = 5
 
     # angles and field
@@ -180,16 +177,13 @@ def main():
     for trp.phi in Phi:
         index_Theta = 0
         Phi_deg[index_Phi] = round(math.degrees(Phi[index_Phi]))
-        print trp.phi
         for trp.theta in Theta:
             index_B = 0
-            print trp.theta
             index_p = 0
             # print(index_a)
             Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
             for i in xrange(len(freqDC2)):
                 for trp.B in Magnetic:
-                    print i, trp.B
                     vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
                     x1 = (vals[1].real - vals[0].real)
                     x2 = (vals[2].real - vals[0].real)
@@ -199,8 +193,6 @@ def main():
                     iks2 = (1 / (math.pow((L2 / tau), 2) + 1))
                     iks3 = np.sin(trp.theta)
                     LambdaM[index_p][index_a] = (iks1 + iks2) * iks3
-                    print index_a
-                    print index_p
                     index_p += 1
                     index_B += 1
             index_a += 1
@@ -210,30 +202,25 @@ def main():
     LamInv = np.linalg.pinv(LambdaM)
     Experiment = IntensityDC2.flat
     pVec = np.dot(LamInv, Experiment)
-    # print(pVec.size)
-    # print('done')
 
     # read weights from a file
 
     pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-    gnufile1 = open('2TheoryFromWeights5.dat', 'w')
-    gnufile2 = open('2MatrixFromWeights5.dat', 'w')
+    gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
+    gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
     TheoryVec = np.dot(LambdaM, pVec)
     TheoryMatr = np.reshape(TheoryVec, (765, 29))
 
     for i in xrange(765):
         for j in xrange(29):
-            gnufile1.write(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i][j])
-            # print(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i,j], file=gnufile1)
+            gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + "\n")
         gnufile1.write("")
-        # print("", file=gnufile1)
 
     for i in xrange(len(Phi_deg)):
         for j in xrange(len(Theta_deg)):
             # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
-            gnufile2.write(Phi_deg[i], '  ', Theta_deg[j], '  ', pMatrix[i][j])
-            # print(Phi_deg[i],'  ', Theta_deg[j], '  ', pMatrix[i,j], file=gnufile2)
-        gnufile2.write("")
+            gnufile2.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix[i][j]) + '\n')
+        gnufile2.write('\n')
 
     gnufile1.close
     gnufile2.close
