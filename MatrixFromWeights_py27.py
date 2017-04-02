@@ -146,14 +146,14 @@ def main():
     pl.ylabel(" B (T)")
     pl.show()
 
-    dA = 20  # 45
-    a = math.radians(90) * (1 / dA + 1)  # 91 degree for theta and phi
+    dA = 20.0  # 45
+    a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
     b = a / dA  # 45 #step for angles
 
     # http://stackoverflow.com/a/2958717/1032286
     c = 81.0 / 28.0  # 30 #field step
-    d = 80 + c  # field limit
-    tau = 5
+    d = 80.0 + c  # field limit
+    tau = 5.0
 
     # angles and field
     Phi = np.arange(0, a, b)
@@ -190,7 +190,7 @@ def main():
                     vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
                     x1 = (vals[1].real - vals[0].real)
                     x2 = (vals[2].real - vals[0].real)
-                    LambdaM[index_p][index_a] = ((1 / (math.pow(((freqDC2[i] - x1)/ tau), 2) + 1)) + (1 / (math.pow(((freqDC2[i] - x2) / tau), 2) + 1))) * np.sin(trp.theta)
+                    LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * np.sin(trp.theta)
                     index_p += 1
                     index_B += 1
             index_a += 1
