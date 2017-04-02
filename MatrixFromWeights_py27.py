@@ -213,14 +213,14 @@ def main():
 
     for i in xrange(765):
         for j in xrange(29):
-            gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + "\n")
-        gnufile1.write("")
+            gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + '\n')
+        gnufile1.write("\n")
 
     for i in xrange(len(Phi_deg)):
         for j in xrange(len(Theta_deg)):
             # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
             gnufile2.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix[i][j]) + '\n')
-        gnufile2.write('\n')
+        gnufile2.write("\n")
 
     gnufile1.close
     gnufile2.close
