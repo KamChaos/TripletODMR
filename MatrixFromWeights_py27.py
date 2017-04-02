@@ -140,6 +140,11 @@ def main():
     for i in xrange(29):
         fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
         IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
+    pl.figure()
+    pl.pcolor(freqDC2, fieldDC2, IntensityDC2)
+    pl.xlabel(" Frequency")
+    pl.ylabel(" B (T)")
+    pl.show()
 
     dA = 20  # 45
     a = math.radians(90) * (1 / dA + 1)  # 91 degree for theta and phi
