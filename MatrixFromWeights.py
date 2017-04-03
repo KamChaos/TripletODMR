@@ -300,16 +300,24 @@ pVec = np.dot(LamInv,Experiment)
 #read weights from a file
 
 pMatrix = np.reshape(pVec,(len(Phi),len(Theta)))
+lambdafile = open('3Lam.dat','w')
+invlfile = open('3iLam.dat', 'w')
 gnufile1 = open('TheoryFromWeights5.dat','w')
 gnufile2 = open('MatrixFromWeights5.dat','w')
 TheoryVec = np.dot(LambdaM, pVec)
 TheoryMatr = np.reshape(TheoryVec,(765,29))
-
+iLam = LamInv.flat
+print(np.mean(iLam),np.mean(LambdaM))
+for index_p in range(Np):
+    for index_a in range(Na):
+        print(LambdaM[index_p,index_a], file = lambdafile)
 
 for i in range(765):
     for j in range(29):
         print(freqDC2[i], '  ', fieldDC2[j], '  ', TheoryMatr[i,j], file=gnufile1)
     print("", file=gnufile1)
+for i in range(len(iLam)):
+    print(iLam[i], file=invlfile)
 
 
 for i in range(len(Phi_deg)):

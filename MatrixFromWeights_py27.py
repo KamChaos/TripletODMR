@@ -140,13 +140,8 @@ def main():
     for i in xrange(29):
         fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
         IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
-    pl.figure()
-    pl.pcolor(freqDC2, fieldDC2, IntensityDC2)
-    pl.xlabel(" Frequency")
-    pl.ylabel(" B (T)")
-    pl.show()
 
-    dA = 20.0  # 45
+    dA = 5.0  # 45
     a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
     b = a / dA  # 45 #step for angles
 
@@ -190,7 +185,7 @@ def main():
                     vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
                     x1 = (vals[1].real - vals[0].real)
                     x2 = (vals[2].real - vals[0].real)
-                    LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * np.sin(trp.theta)
+                    LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
                     index_p += 1
                     index_B += 1
             index_a += 1
@@ -204,15 +199,27 @@ def main():
     # read weights from a file
 
     pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-    gnufile1 = open('2TheoryFromWeights20.dat', 'w+')
-    gnufile2 = open('2MatrixFromWeights20.dat', 'w+')
+    lambdafile = open('2Lam.dat', 'w+')
+    invlfile = open('2iLam.dat', 'w+')
+    gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
+    gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
     TheoryVec = np.dot(LambdaM, pVec)
     TheoryMatr = np.reshape(TheoryVec, (765, 29))
+    iLam = LamInv.flat
+    print np.mean(iLam)
+    print np.mean(LambdaM)
+    for index_p in xrange(Np):
+        for index_a in xrange(Na):
+            lambdafile.write(str(LambdaM[index_p][index_a]) + '\n')
+    lambdafile.close
 
     for i in xrange(765):
         for j in xrange(29):
             gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + '\n')
         gnufile1.write("\n")
+    for i in xrange(len(iLam)):
+        invlfile.write(str(iLam[i]) + '\n')
+    invlfile.close
 
     for i in xrange(len(Phi_deg)):
         for j in xrange(len(Theta_deg)):
