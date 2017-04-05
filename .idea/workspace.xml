@@ -9,8 +9,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/2MatrixFromWeights5.dat" afterPath="$PROJECT_DIR$/2MatrixFromWeights5.dat" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/2TheoryFromWeights5.dat" afterPath="$PROJECT_DIR$/2TheoryFromWeights5.dat" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/2iLam.dat" afterPath="$PROJECT_DIR$/2iLam.dat" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MatrixFromWeights.py" afterPath="$PROJECT_DIR$/MatrixFromWeights.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MatrixFromWeights_py27.py" afterPath="$PROJECT_DIR$/MatrixFromWeights_py27.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -490,7 +488,14 @@
       <option name="project" value="LOCAL" />
       <updated>1491237692869</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="sorting eigenvalues solved the problem">
+      <created>1491410272928</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1491410272928</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -527,7 +532,8 @@
     <MESSAGE value="-" />
     <MESSAGE value="gnuplot  splot of Theoryfromweights files is strange,&#10;compare with python 3" />
     <MESSAGE value="LambdaMs are totally different in 2.7 and 3" />
-    <option name="LAST_COMMIT_MESSAGE" value="LambdaMs are totally different in 2.7 and 3" />
+    <MESSAGE value="sorting eigenvalues solved the problem" />
+    <option name="LAST_COMMIT_MESSAGE" value="sorting eigenvalues solved the problem" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
