@@ -119,115 +119,100 @@ class TripletHamiltonian:
 
     def eval(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
-            return np.linalg.eig(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+            return np.linalg.eigvalsh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
-            return np.linalg.eig(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
+            return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 ################################################
 #ExpData Plot Sam's approach
 
-def main():
-    dataDC2 = np.loadtxt("testupto30up.txt", comments='%')  # , usecols=(0,1,3),unpack=True)
-    fieldDC2 = np.zeros(29)
-    freqDC2 = (dataDC2[650:1415, 0]) / 1e6
-    freqStartDC2 = freqDC2[0]
-    NumPoints = 765
-    freqStopDC2 = freqDC2[764]
-    freqStepDC2 = freqDC2[11] - freqDC2[10]
-    IntensityDC2 = np.zeros((29, 765))
+dataDC2 = np.loadtxt("testupto30up.txt", comments='%')  # , usecols=(0,1,3),unpack=True)
+fieldDC2 = np.zeros(29)
+freqDC2 = (dataDC2[650:1415, 0]) / 1e6
+freqStartDC2 = freqDC2[0]
+NumPoints = 765
+freqStopDC2 = freqDC2[764]
+freqStepDC2 = freqDC2[11] - freqDC2[10]
+IntensityDC2 = np.zeros((29, 765))
 
-    # http://python3porting.com/differences.html#range-and-xrange
-    for i in xrange(29):
-        fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
-        IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
+# http://python3porting.com/differences.html#range-and-xrange
+for i in xrange(29):
+    fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
+    IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-    dA = 5.0  # 45
-    a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
-    b = a / dA  # 45 #step for angles
+dA = 5.0  # 45
+a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
+b = a / dA  # 45 #step for angles
 
-    # http://stackoverflow.com/a/2958717/1032286
-    c = 81.0 / 28.0  # 30 #field step
-    d = 80.0 + c  # field limit
-    tau = 5.0
+# http://stackoverflow.com/a/2958717/1032286
+c = 81.0 / 28.0  # 30 #field step
+d = 80.0 + c  # field limit
+tau = 5.0
 
-    # angles and field
-    Phi = np.arange(0, a, b)
-    Theta = np.arange(0, a, b)
-    Magnetic = np.arange(0, d, c)
-    Phi_deg = np.zeros(len(Phi))
-    Theta_deg = np.zeros(len(Theta))
+# angles and field
+Phi = np.arange(0, a, b)
+Theta = np.arange(0, a, b)
+Magnetic = np.arange(0, d, c)
+Phi_deg = np.zeros(len(Phi))
+Theta_deg = np.zeros(len(Theta))
 
-    Na = len(Phi) * len(Theta)
-    Np = IntensityDC2.size
-    Nb = len(fieldDC2)
+Na = len(Phi) * len(Theta)
+Np = IntensityDC2.size
+Nb = len(fieldDC2)
 
-    LambdaM = np.zeros((Np, Na))
+LambdaM = np.zeros((Np, Na))
 
-    trp = TripletHamiltonian()
-    trp.D = 487.9
-    trp.E = 72.9
-    # for B: 2.9 mT = 81.27236559069694 MHz
-    # 19.9 mT = 557.7 MHz
-    # 12 mT = 336.3 MHz
+trp = TripletHamiltonian()
+trp.D = 487.9
+trp.E = 72.9
+# for B: 2.9 mT = 81.27236559069694 MHz
+# 19.9 mT = 557.7 MHz
+# 12 mT = 336.3 MHz
 
-    index_Phi = 0
-    index_a = 0
-    for trp.phi in Phi:
-        index_Theta = 0
-        Phi_deg[index_Phi] = round(math.degrees(Phi[index_Phi]))
-        for trp.theta in Theta:
-            index_B = 0
-            index_p = 0
-            # print(index_a)
-            Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
-            for i in xrange(len(freqDC2)):
-                for trp.B in Magnetic:
-                    vals, vecs = trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True)
-                    x1 = (vals[1].real - vals[0].real)
-                    x2 = (vals[2].real - vals[0].real)
-                    LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
-                    index_p += 1
-                    index_B += 1
-            index_a += 1
-            index_Theta += 1
-        index_Phi += 1
+index_Phi = 0
+index_a = 0
+for trp.phi in Phi:
+    index_Theta = 0
+    Phi_deg[index_Phi] = round(math.degrees(Phi[index_Phi]))
+    for trp.theta in Theta:
+        index_B = 0
+        index_p = 0
+        # print(index_a)
+        Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
+        for i in xrange(len(freqDC2)):
+            for trp.B in Magnetic:
+                vals = sorted(trp.eval(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
+                x1 = (vals[1].real - vals[0].real)
+                x2 = (vals[2].real - vals[0].real)
+                LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
+                index_p += 1
+                index_B += 1
+        index_a += 1
+        index_Theta += 1
+    index_Phi += 1
 
-    LamInv = np.linalg.pinv(LambdaM)
-    Experiment = IntensityDC2.flat
-    pVec = np.dot(LamInv, Experiment)
+LamInv = np.linalg.pinv(LambdaM)
+Experiment = IntensityDC2.flat
+pVec = np.dot(LamInv, Experiment)
 
-    # read weights from a file
+# read weights from a file
 
-    pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-    lambdafile = open('2Lam.dat', 'w+')
-    invlfile = open('2iLam.dat', 'w+')
-    gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
-    gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
-    TheoryVec = np.dot(LambdaM, pVec)
-    TheoryMatr = np.reshape(TheoryVec, (765, 29))
-    iLam = LamInv.flat
-    print np.mean(iLam)
-    print np.mean(LambdaM)
-    for index_p in xrange(Np):
-        for index_a in xrange(Na):
-            lambdafile.write(str(LambdaM[index_p][index_a]) + '\n')
-    lambdafile.close
+pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
+gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
+gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
+TheoryVec = np.dot(LambdaM, pVec)
+TheoryMatr = np.reshape(TheoryVec, (765, 29))
 
-    for i in xrange(765):
-        for j in xrange(29):
-            gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + '\n')
-        gnufile1.write("\n")
-    for i in xrange(len(iLam)):
-        invlfile.write(str(iLam[i]) + '\n')
-    invlfile.close
+for i in xrange(765):
+    for j in xrange(29):
+        gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + '\n')
+    gnufile1.write("\n")
 
-    for i in xrange(len(Phi_deg)):
-        for j in xrange(len(Theta_deg)):
-            # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
-            gnufile2.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix[i][j]) + '\n')
-        gnufile2.write("\n")
+for i in xrange(len(Phi_deg)):
+    for j in xrange(len(Theta_deg)):
+        # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
+        gnufile2.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix[i][j]) + '\n')
+    gnufile2.write("\n")
 
-    gnufile1.close
-    gnufile2.close
-
-main()
+gnufile1.close
+gnufile2.close
