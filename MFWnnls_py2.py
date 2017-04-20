@@ -119,103 +119,12 @@ class TripletHamiltonian:
     def spin_hamiltonian_field_basis(self, D, E, B, theta, phi):
         return self.fine_structure(D, E, Rotation(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
 
-    def evalvec(self, D, E, B, theta=0, phi=0, mol_basis=True):
+    def eval(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
-            return np.linalg.eig(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+            return np.linalg.eigvalsh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
-            return np.linalg.eig(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
+            return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
-
-class ODMR_Signal:
-    """ 
-    * ODMR_Signal
-    *
-    * Output : Computes ODMR and magnetic resonance signals 
-    *
-    * Input : spins, a reference on SpinSystem object
-    * SpinSystem should define 
-    * spins.matrix_size
-    * spins.evec
-    * spins.eval
-    * spins.singlet_projector()
-    * spins.Bac_field_basis_matrix()
-    """
-
-    def __init__(self, spin_system):
-        self.spins = spin_system
-        self.rho0 = np.empty(self.spins.matrix_size, dtype=float)
-        self.rho2 = np.empty([self.spins.matrix_size, self.spins.matrix_size], dtype=np.complex_)
-        self.gamma = None
-        self.gamma_diag = None
-
-    def update_from_spin_hamiltonian(self):
-        self.Sproj_eig_basis = reduce(np.dot, [np.matrix.getH(self.spins.evec), self.spins.singlet_projector(),
-                                               self.spins.evec])
-        self.V = reduce(np.dot, [np.matrix.getH(self.spins.evec), self.spins.Bac_field_basis_matrix(), self.spins.evec])
-
-    def omega_nm(self, n, m):
-        return self.spins.eval[n] - self.spins.eval[m]
-
-    def load_rho0_thermal(self, Temp):
-        sum = 0
-        for i in range(self.spins.matrix_size):
-            rho0_i = math.exp(- self.spins.eval[i] / Temp)
-            self.rho0[i] = rho_i
-            sum += rho_i
-        self.rho0 /= sum
-
-    def load_rho0_from_singlet(self):
-        sum = 0
-        for i in range(self.spins.matrix_size):
-            self.rho0[i] = self.Sproj_eig_basis[i, i].real
-            sum += self.rho0[i]
-        self.rho0 /= sum
-
-    def chi1(self, omega):
-        c1 = 0j
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here
-                Vmn = self.V[m, n]
-                Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
-                c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
-        return c1
-
-    def find_rho2_explicit(self, omega):
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                rrr = 0j
-                for nu in range(self.spins.matrix_size):
-                    for p in [-1., 1.]:
-                        gamma_nm = self.gamma_diag if m == n else self.gamma
-                        rrr += (self.rho0[m] - self.rho0[nu]) * self.V[n, nu] * self.V[nu, m] / (
-                        (self.omega_nm(n, m) - 1j * gamma_nm) * (self.omega_nm(nu, m) - omega * p - 1j * self.gamma))
-                        rrr -= (self.rho0[nu] - self.rho0[n]) * self.V[n, nu] * self.V[nu, m] / (
-                        (self.omega_nm(n, m) - 1j * gamma_nm) * (self.omega_nm(n, nu) - omega * p - 1j * self.gamma))
-                self.rho2[n, m] = rrr
-
-    def find_rho2(self, omega):
-        Vtmp = np.zeros((self.spins.matrix_size, self.spins.matrix_size), dtype=np.complex_)
-        for m in range(self.spins.matrix_size):
-            for nu in range(self.spins.matrix_size):
-                for p in [-1., 1.]:
-                    Vtmp[nu, m] += (self.rho0[m] - self.rho0[nu]) * self.V[nu, m] / (
-                    self.omega_nm(nu, m) - omega * p - 1j * self.gamma)
-        self.rho2 = np.dot(self.V, Vtmp) - np.dot(Vtmp, self.V)
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                gamma_nm = self.gamma_diag if m == n else self.gamma
-                self.rho2[n, m] /= (self.omega_nm(n, m) - 1j * gamma_nm);
-
-    def odmr(self, omega):
-        odmr_amp = 0j
-        self.find_rho2(omega)
-
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                odmr_amp += self.rho2[m, n] * self.Sproj_eig_basis[n, m]
-
-        return odmr_amp.real
 
 
 
@@ -237,7 +146,7 @@ for i in xrange(29):
     fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
     IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-dA = 5.0  # 45
+dA = 25.0  # 45
 a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
 b = a / dA  # 45 #step for angles
 
@@ -259,12 +168,10 @@ Np = IntensityDC2.size
 Nb = len(fieldDC2)
 
 LambdaM = np.zeros((Np, Na))
-LambdaMepr = np.zeros((Np, Na))
 
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
-odmr = ODMR_Signal(trp)
 # for B: 2.9 mT = 81.27236559069694 MHz
 # 19.9 mT = 557.7 MHz
 # 12 mT = 336.3 MHz
@@ -272,11 +179,6 @@ odmr = ODMR_Signal(trp)
 index_Phi = 0
 index_a = 0
 
-odmr.update_from_spin_hamiltonian()
-odmr_from_triplets.update_from_spin_hamiltonian()
-odmr.load_rho0_from_singlet()
-odmr.gamma = 1e-2
-odmr.gamma_diag = 1e-2
 
 
 for trp.phi in Phi:
@@ -293,7 +195,6 @@ for trp.phi in Phi:
                 x1 = (vals[1].real - vals[0].real)
                 x2 = (vals[2].real - vals[0].real)
                 LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
-                LambdaMepr[index_p][index_a] = np.dot(LambdaM[index_p][index_a],odmr.chi1(self, 2*math.pi*freqDC2[i]))
                 index_p += 1
                 index_B += 1
         index_a += 1
@@ -313,21 +214,18 @@ pVec2, rnorm1 = nnls(LambdaM,Experiment)
 pMatrix2 = np.reshape(pVec2, (len(Phi), len(Theta)))
 TheoryVec2 = np.dot(LambdaM, pVec2)
 TheoryMatr2 = np.reshape(TheoryVec2, (765, 29))
-pVec3, rnorm2 = nnls(LambdaMepr,Experiment)
-pMatrix3 = np.reshape(pVec3, (len(Phi), len(Theta)))
-TheoryVec3 = np.dot(LambdaMepr, pVec3)
-TheoryMatr3 = np.reshape(TheoryVec3, (765, 29))
 
-gnufile3 = open('MatrixFromWeights5nnls.dat', 'w+')
+gnufile3 = open('TheoryFromWeights25nnls.dat', 'w+')
 for i in xrange(765):
     for j in xrange(29):
         gnufile3.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '\n')
     gnufile3.write("\n")
 gnufile3.close
-gnufile4 = open('MatrixFromWeights5nnlsEPR.dat', 'w+')
-for i in xrange(765):
-    for j in xrange(29):
-        gnufile4.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr3[i][j]) + '\n')
+gnufile4 = open('MatrixFromWeights25nnls.dat', 'w+')
+for i in xrange(len(Phi_deg)):
+    for j in xrange(len(Theta_deg)):
+        # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
+        gnufile4.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix2[i][j]) + '\n')
     gnufile4.write("\n")
 gnufile4.close
 """
