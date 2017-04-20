@@ -168,8 +168,9 @@ pl.show()
 
 
 #вспомогательные чиселки для циклов
-a = (90*math.pi/180)*(1/45+1) #91 градус как предел для фи и тета
-b = a/45#45 #шаг для фи и тета
+dA = 45.0  # 45
+a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
+b = a / dA
 c = 81/28#30 #шаг для поля
 #c = 336/119#30 #шаг для поля
 d = 80+c #предел для поля
@@ -182,7 +183,7 @@ Magnetic = np.arange(0,d,c)
 Phi_deg = np.zeros(len(Phi))
 Theta_deg = np.zeros(len(Theta))
 w = np.zeros((len(Phi),len(Theta)))
-
+print(len(Phi),len(Theta))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
@@ -241,7 +242,7 @@ TheoryW = [go.Heatmap( z=weights_norm.values.tolist(), colorscale='Viridis')]
 py.iplot(TheoryW, filename='pandas-heatmap')
 """
 
-gnufile = open('DC2_123weights.dat','w')
+gnufile = open('DC2_weights45.dat','w')
 
 for i in range(len(Phi_deg)):
     for j in range(len(Theta_deg)):

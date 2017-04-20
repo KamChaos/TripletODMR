@@ -8,6 +8,7 @@ from functools import reduce
 #import pylab as pl
 import array
 #from scipy.fftpack import fft, ifft
+from scipy.optimize import nnls
 
 class Rotation:
     """
@@ -155,6 +156,7 @@ Theta = np.arange(0, a, b)
 Magnetic = np.arange(0, d, c)
 Phi_deg = np.zeros(len(Phi))
 Theta_deg = np.zeros(len(Theta))
+print len(Phi), len(Theta)
 
 Na = len(Phi) * len(Theta)
 Np = IntensityDC2.size
@@ -193,16 +195,28 @@ for trp.phi in Phi:
 
 LamInv = np.linalg.pinv(LambdaM)
 Experiment = IntensityDC2.flat
-pVec = np.dot(LamInv, Experiment)
+pVec1 = np.dot(LamInv, Experiment)
 
 # read weights from a file
-
-pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
-gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
-TheoryVec = np.dot(LambdaM, pVec)
+pMatrix = np.reshape(pVec1, (len(Phi), len(Theta)))
+TheoryVec = np.dot(LambdaM, pVec1)
 TheoryMatr = np.reshape(TheoryVec, (765, 29))
 
+pVec2, rnorm = nnls(LambdaM,Experiment)
+pMatrix2 = np.reshape(pVec2, (len(Phi), len(Theta)))
+TheoryVec2 = np.dot(LambdaM, pVec2)
+TheoryMatr2 = np.reshape(TheoryVec2, (765, 29))
+
+gnufile3 = open('MatrixFromWeights5nnls.dat', 'w+')
+for i in xrange(765):
+    for j in xrange(29):
+        gnufile3.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '\n')
+    gnufile3.write("\n")
+gnufile3.close
+
+"""
+gnufile1 = open('2TheoryFromWeights5.dat', 'w+')
+gnufile2 = open('2MatrixFromWeights5.dat', 'w+')
 for i in xrange(765):
     for j in xrange(29):
         gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr[i][j]) + '\n')
@@ -216,3 +230,12 @@ for i in xrange(len(Phi_deg)):
 
 gnufile1.close
 gnufile2.close
+"""
+
+
+"""
+read weights from previous codes (run for more angles)
+Lambda,rnorm = nnls(W,Experiment)
+Theory = np.dot(Lambda,W)
+write theory to a file for gnuplot
+"""
