@@ -99,6 +99,21 @@ class TripletHamiltonian:
         self.Sy = - 1j * np.matrix('0 1 0; -1 0 1; 0 -1 0', dtype=np.complex_) / math.sqrt(2.0)
         self.matrix_size = 3.0
 
+        s2i3 = math.sqrt(2.0 / 3.0);
+        si2 = 1.0 / math.sqrt(2.0);
+        si3 = 1.0 / math.sqrt(3.0);
+        si6 = 1.0 / math.sqrt(6.0);
+
+        self.Jproj = np.array([[0, 0, si3, 0, -si3, 0, si3, 0, 0],
+                               [0, 0, 0, 0, 0, -si2, 0, si2, 0],
+                               [0, 0, -si2, 0, 0, 0, si2, 0, 0],
+                               [0, -si2, 0, si2, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 1.0],
+                               [0, 0, 0, 0, 0, si2, 0, si2, 0],
+                               [0, 0, si6, 0, s2i3, 0, si6, 0, 0],
+                               [0, si2, 0, si2, 0, 0, 0, 0, 0],
+                               [1.0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
     def fine_structure(self, D, E, rotation=Rotation()):
         rotation_matrix = rotation.matrix()
         rSx = rotation_matrix[0, 0] * self.Sx + rotation_matrix[0, 1] * self.Sy + rotation_matrix[0, 2] * self.Sz
@@ -119,11 +134,15 @@ class TripletHamiltonian:
     def spin_hamiltonian_field_basis(self, D, E, B, theta, phi):
         return self.fine_structure(D, E, Rotation(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
 
+    def singlet_projector(self):
+        singlet_state = np.asmatrix(self.Jproj[0:1, :])
+        return np.dot(np.matrix.getH(singlet_state), singlet_state)
+
     def evalvec(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
-            return np.linalg.eig(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+            return np.linalg.eigh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
-            return np.linalg.eig(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
+            return np.linalg.eigh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 
 class ODMR_Signal:
@@ -264,6 +283,9 @@ LambdaMepr = np.zeros((Np, Na))
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
+trp.B = 1337
+trp.eval, trp.evec = trp.evalvec(trp.D, trp.E, trp.B)
+
 odmr = ODMR_Signal(trp)
 # for B: 2.9 mT = 81.27236559069694 MHz
 # 19.9 mT = 557.7 MHz
