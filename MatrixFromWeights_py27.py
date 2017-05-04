@@ -129,8 +129,6 @@ class TripletHamiltonian:
         self.eval,self.evec = self.evals(D, E, B, theta=0, phi=0, mol_basis=True)
 
 
-
-
 class ODMR_Signal:
     """ 
     * ODMR_Signal
