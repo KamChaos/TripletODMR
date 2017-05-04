@@ -97,7 +97,7 @@ class TripletHamiltonian:
         self.Sz = np.matrix('1 0 0; 0 0 0; 0 0 -1', dtype=np.complex_)
         self.Sx = np.matrix('0 1 0; 1 0 1; 0 1 0', dtype=np.complex_) / math.sqrt(2.0)
         self.Sy = - 1j * np.matrix('0 1 0; -1 0 1; 0 -1 0', dtype=np.complex_) / math.sqrt(2.0)
-        self.matrix_size = 3.0
+        self.matrix_size = 3
 
     def fine_structure(self, D, E, rotation=Rotation()):
         rotation_matrix = rotation.matrix()
@@ -125,7 +125,7 @@ class TripletHamiltonian:
         else:
             return np.linalg.eigvals(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
-    def evecs(self):
+    def evecs(self, D, E, B, theta=0, phi=0):
         self.eval, self.evec = np.linalg.eigh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
 
 
@@ -250,7 +250,7 @@ for trp.phi in Phi:
         Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
         for i in xrange(len(freqDC2)):
             for trp.B in Magnetic:
-                trp.evecs()
+                trp.evecs(self, D, E, B, theta=0, phi=0)
                 odmr.update_from_spin_hamiltonian()
                 odmr_from_triplets.update_from_spin_hamiltonian()
                 odmr.load_rho0_from_singlet()
