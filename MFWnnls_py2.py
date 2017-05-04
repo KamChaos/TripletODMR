@@ -146,7 +146,7 @@ for i in xrange(29):
     fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
     IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-dA = 25.0  # 45
+dA = 15.0  # 45
 a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
 b = a / dA  # 45 #step for angles
 
@@ -161,7 +161,6 @@ Theta = np.arange(0, a, b)
 Magnetic = np.arange(0, d, c)
 Phi_deg = np.zeros(len(Phi))
 Theta_deg = np.zeros(len(Theta))
-print len(Phi), len(Theta)
 
 Na = len(Phi) * len(Theta)
 Np = IntensityDC2.size
@@ -214,14 +213,15 @@ pVec2, rnorm1 = nnls(LambdaM,Experiment)
 pMatrix2 = np.reshape(pVec2, (len(Phi), len(Theta)))
 TheoryVec2 = np.dot(LambdaM, pVec2)
 TheoryMatr2 = np.reshape(TheoryVec2, (765, 29))
-
-gnufile3 = open('TheoryFromWeights25nnls.dat', 'w+')
+Exp = np.reshape(IntensityDC2, (765, 29))
+print TheoryMatr2.shape, IntensityDC2.shape
+gnufile3 = open('TheoryFromWeights15nnls.dat', 'w+')
 for i in xrange(765):
     for j in xrange(29):
-        gnufile3.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '\n')
+        gnufile3.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '  ' + str(Exp[i][j] - TheoryMatr2[i][j]) + '\n')
     gnufile3.write("\n")
 gnufile3.close
-gnufile4 = open('MatrixFromWeights25nnls.dat', 'w+')
+gnufile4 = open('MatrixFromWeights15nnls.dat', 'w+')
 for i in xrange(len(Phi_deg)):
     for j in xrange(len(Theta_deg)):
         # print(Phi_deg[i],'  ', Theta_deg[j], '  ', w[i,j]/56, file=gnufile)
