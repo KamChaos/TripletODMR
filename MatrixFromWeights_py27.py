@@ -121,12 +121,12 @@ class TripletHamiltonian:
 
     def evals(self, D, E, B, theta=0, phi=0, mol_basis=True):
         if mol_basis:
-            return np.linalg.eigh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+            return np.linalg.eigvals(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
             return np.linalg.eigvals(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
     def evecs(self):
-        self.eval,self.evec = self.evals(D, E, B, theta=0, phi=0, mol_basis=True)
+        self.eval, self.evec = np.linalg.eigh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
 
 
 class ODMR_Signal:
@@ -151,13 +151,11 @@ class ODMR_Signal:
         self.gamma = None
         self.gamma_diag = None
 
-    def update_from_spin_hamiltonian(self):
-        self.Sproj_eig_basis = reduce(np.dot, [np.matrix.getH(self.spins.evec), self.spins.singlet_projector(),
-                                               self.spins.evec])
-        self.V = reduce(np.dot, [np.matrix.getH(self.spins.evec), self.spins.Bac_field_basis_matrix(), self.spins.evec])
+    def V(self,n,m):
+        return self.spins.evec[n]-self.spins.evec[m]
 
     def omega_nm(self, n, m):
-        return self.spins.eval[n] - self.spins.eval[m]
+        return self.spins.evals[n] - self.spins.evals[m]
 
     def load_rho0_thermal(self, Temp):
         sum = 0
@@ -165,13 +163,6 @@ class ODMR_Signal:
             rho0_i = math.exp(- self.spins.eval[i] / Temp)
             self.rho0[i] = rho_i
             sum += rho_i
-        self.rho0 /= sum
-
-    def load_rho0_from_singlet(self):
-        sum = 0
-        for i in range(self.spins.matrix_size):
-            self.rho0[i] = self.Sproj_eig_basis[i, i].real
-            sum += self.rho0[i]
         self.rho0 /= sum
 
     def chi1(self, omega):
@@ -184,41 +175,6 @@ class ODMR_Signal:
                 c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
         return c1
 
-    def find_rho2_explicit(self, omega):
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                rrr = 0j
-                for nu in range(self.spins.matrix_size):
-                    for p in [-1., 1.]:
-                        gamma_nm = self.gamma_diag if m == n else self.gamma
-                        rrr += (self.rho0[m] - self.rho0[nu]) * self.V[n, nu] * self.V[nu, m] / (
-                        (self.omega_nm(n, m) - 1j * gamma_nm) * (self.omega_nm(nu, m) - omega * p - 1j * self.gamma))
-                        rrr -= (self.rho0[nu] - self.rho0[n]) * self.V[n, nu] * self.V[nu, m] / (
-                        (self.omega_nm(n, m) - 1j * gamma_nm) * (self.omega_nm(n, nu) - omega * p - 1j * self.gamma))
-                self.rho2[n, m] = rrr
-
-    def find_rho2(self, omega):
-        Vtmp = np.zeros((self.spins.matrix_size, self.spins.matrix_size), dtype=np.complex_)
-        for m in range(self.spins.matrix_size):
-            for nu in range(self.spins.matrix_size):
-                for p in [-1., 1.]:
-                    Vtmp[nu, m] += (self.rho0[m] - self.rho0[nu]) * self.V[nu, m] / (
-                    self.omega_nm(nu, m) - omega * p - 1j * self.gamma)
-        self.rho2 = np.dot(self.V, Vtmp) - np.dot(Vtmp, self.V)
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                gamma_nm = self.gamma_diag if m == n else self.gamma
-                self.rho2[n, m] /= (self.omega_nm(n, m) - 1j * gamma_nm);
-
-    def odmr(self, omega):
-        odmr_amp = 0j
-        self.find_rho2(omega)
-
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                odmr_amp += self.rho2[m, n] * self.Sproj_eig_basis[n, m]
-
-        return odmr_amp.real
 
 
 
@@ -275,12 +231,14 @@ odmr = ODMR_Signal(trp)
 index_Phi = 0
 index_a = 0
 
+"""
+trp.evecs()
 odmr.update_from_spin_hamiltonian()
 odmr_from_triplets.update_from_spin_hamiltonian()
 odmr.load_rho0_from_singlet()
 odmr.gamma = 1e-2
 odmr.gamma_diag = 1e-2
-
+"""
 
 for trp.phi in Phi:
     index_Theta = 0
@@ -292,6 +250,12 @@ for trp.phi in Phi:
         Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
         for i in xrange(len(freqDC2)):
             for trp.B in Magnetic:
+                trp.evecs()
+                odmr.update_from_spin_hamiltonian()
+                odmr_from_triplets.update_from_spin_hamiltonian()
+                odmr.load_rho0_from_singlet()
+                odmr.gamma = 1e-2
+                odmr.gamma_diag = 1e-2
                 vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
                 print vals
                 x1 = (vals[1].real - vals[0].real)
