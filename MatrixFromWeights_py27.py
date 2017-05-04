@@ -251,9 +251,6 @@ for trp.phi in Phi:
         for i in xrange(len(freqDC2)):
             for trp.B in Magnetic:
                 trp.evecs(trp.D, trp.E, trp.B, trp.theta, trp.phi)
-                odmr.update_from_spin_hamiltonian()
-                odmr_from_triplets.update_from_spin_hamiltonian()
-                odmr.load_rho0_from_singlet()
                 odmr.gamma = 1e-2
                 odmr.gamma_diag = 1e-2
                 vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
@@ -261,7 +258,7 @@ for trp.phi in Phi:
                 x1 = (vals[1].real - vals[0].real)
                 x2 = (vals[2].real - vals[0].real)
                 LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
-                LambdaMepr[index_p][index_a] = np.dot(LambdaM[index_p][index_a],odmr.chi1(self, 2*math.pi*freqDC2[i]))
+                LambdaMepr[index_p][index_a] = np.dot(LambdaM[index_p][index_a],odmr.chi1(2*math.pi*freqDC2[i]))
                 index_p += 1
                 index_B += 1
         index_a += 1
