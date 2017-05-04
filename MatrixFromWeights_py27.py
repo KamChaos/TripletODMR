@@ -250,7 +250,7 @@ for trp.phi in Phi:
         Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
         for i in xrange(len(freqDC2)):
             for trp.B in Magnetic:
-                trp.evecs(self, D, E, B, theta=0, phi=0)
+                trp.evecs(trp.D, trp.E, trp.B, trp.theta, trp.phi)
                 odmr.update_from_spin_hamiltonian()
                 odmr_from_triplets.update_from_spin_hamiltonian()
                 odmr.load_rho0_from_singlet()
