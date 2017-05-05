@@ -163,7 +163,7 @@ class ODMR_Signal:
             rho0_i = math.exp(- self.spins.eval[i] / Temp)
             self.rho0[i] = rho_i
             sum += rho_i
-        self.rho0 /= sum
+        self.rho0 #/= sum
 
     def chi1(self, omega):
         c1 = 0j
@@ -254,11 +254,14 @@ for trp.phi in Phi:
                 odmr.gamma = 1e-2
                 odmr.gamma_diag = 1e-2
                 odmr.doV()
+                odmr.Temp = 41600000000
                 vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
                 x1 = (vals[1].real - vals[0].real)
                 x2 = (vals[2].real - vals[0].real)
                 LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
                 LambdaMepr[index_p][index_a] = np.dot(LambdaM[index_p][index_a],odmr.chi1(2*math.pi*freqDC2[i]))
+                print math.exp(- vals[0] / odmr.Temp), math.exp(- vals[1] /odmr.Temp),math.exp(- vals[2] /odmr.Temp)
+                #print vals, odmr.chi1(2*math.pi*freqDC2[i]), odmr.rho0
                 index_p += 1
                 index_B += 1
         index_a += 1
