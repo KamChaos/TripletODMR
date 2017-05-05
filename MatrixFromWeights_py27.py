@@ -151,11 +151,11 @@ class ODMR_Signal:
         self.gamma = None
         self.gamma_diag = None
 
-    def V(self,n,m):
-        return self.spins.evec[n]-self.spins.evec[m]
+    def doV(self):
+        self.V = reduce(np.dot, [ np.matrix.getH(self.spins.evec), self.spins.Sx, self.spins.evec])
 
-    def omega_nm(self, n, m):
-        return self.spins.evals[n] - self.spins.evals[m]
+    def omega_nm(self, m, n):
+        return self.spins.eval[n] - self.spins.eval[m]
 
     def load_rho0_thermal(self, Temp):
         sum = 0
@@ -170,8 +170,8 @@ class ODMR_Signal:
         for m in range(self.spins.matrix_size):
             for n in range(self.spins.matrix_size):
                 # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here
-                Vmn = self.V[m, n]
-                Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
+                Vmn = self.V[m,n]
+                Vmn_abs2 = Vmn.real*Vmn.real + Vmn.imag*Vmn.imag
                 c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
         return c1
 
@@ -253,8 +253,8 @@ for trp.phi in Phi:
                 trp.evecs(trp.D, trp.E, trp.B, trp.theta, trp.phi)
                 odmr.gamma = 1e-2
                 odmr.gamma_diag = 1e-2
+                odmr.doV()
                 vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
-                print vals
                 x1 = (vals[1].real - vals[0].real)
                 x2 = (vals[2].real - vals[0].real)
                 LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
