@@ -119,14 +119,14 @@ class TripletHamiltonian:
     def spin_hamiltonian_field_basis(self, D, E, B, theta, phi):
         return self.fine_structure(D, E, Rotation(0, -theta, -phi + math.pi / 2.)) + self.zeeman(0, 0, B)
 #false? check c++
-    def evals(self, D, E, B, theta=0, phi=0, mol_basis=True):
+    def evals(self, D, E, B, theta=0, phi=0, mol_basis=False):
         if mol_basis:
             return np.linalg.eigvals(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
         else:
             return np.linalg.eigvals(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
     def evecs(self, D, E, B, theta=0, phi=0):
-        self.eval, self.evec = np.linalg.eigh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
+        self.eval, self.evec = np.linalg.eigh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
 
 
 class ODMR_Signal:
@@ -176,12 +176,7 @@ class ODMR_Signal:
                 c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
         return c1
 
-
-
-
-
 ################################################
-#ExpData Plot Sam's approach
 
 dataDC2 = np.loadtxt("testupto30up.txt", comments='%')  # , usecols=(0,1,3),unpack=True)
 fieldDC2 = np.zeros(29)
@@ -192,42 +187,32 @@ freqStopDC2 = freqDC2[764]
 freqStepDC2 = freqDC2[11] - freqDC2[10]
 IntensityDC2 = np.zeros((29, 765))
 
-# http://python3porting.com/differences.html#range-and-xrange
 for i in xrange(29):
     fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
     IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-dA = 45.0  # 45
-a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
-b = a / dA  # 45 #step for angles
-
-# http://stackoverflow.com/a/2958717/1032286
 c = 81.0 / 28.0  # 30 #field step
 d = 80.0 + c  # field limit
-tau = 5.0
+
 
 # angles and field
-Phi = np.arange(0, a, b)
-Theta = np.arange(0, a, b)
 Magnetic = np.arange(0, d, c)
-Phi_deg = np.zeros(len(Phi))
-Theta_deg = np.zeros(len(Theta))
-print len(Phi), len(Theta)
 
-Na = len(Phi) * len(Theta)
+#print len(Phi), len(Theta)
+tau = 5
+Na = 5#len(Phi) = len(Theta)
+Na2 = Na*Na
 Np = IntensityDC2.size
 Nb = len(fieldDC2)
-
-LambdaM = np.zeros((Np, Na))
-LambdaMepr = np.zeros((Np, Na))
+Phi_deg = np.zeros(Na)
+Theta_deg = np.zeros(Na)
+LambdaM = np.zeros((Np, Na2))
+LambdaMepr = np.zeros((Np, Na2))
 
 trp = TripletHamiltonian()
 trp.D = 487.9
 trp.E = 72.9
 odmr = ODMR_Signal(trp)
-# for B: 2.9 mT = 81.27236559069694 MHz
-# 19.9 mT = 557.7 MHz
-# 12 mT = 336.3 MHz
 
 index_Phi = 0
 index_a = 0
@@ -241,14 +226,16 @@ odmr.gamma = 1e-2
 odmr.gamma_diag = 1e-2
 """
 
-for trp.phi in Phi:
+for ang1 in range(Na):
+    trp.phi = (1+math.pi*ang1)/(2*Na)
     index_Theta = 0
-    Phi_deg[index_Phi] = round(math.degrees(Phi[index_Phi]))
-    for trp.theta in Theta:
+    Phi_deg[index_Phi] = round(math.degrees(trp.phi))
+    for ang2 in range(Na):
+        trp.theta = (1+math.pi*ang2)/(2*Na)
         index_B = 0
         index_p = 0
-        # print(index_a)
-        Theta_deg[index_Theta] = round(math.degrees(Theta[index_Theta]))
+        Theta_deg[index_Theta] = round(math.degrees(trp.theta))
+        print Phi_deg[index_Phi], Theta_deg[index_Theta]
         for i in xrange(len(freqDC2)):
             for trp.B in Magnetic:
                 trp.evecs(trp.D, trp.E, trp.B, trp.theta, trp.phi)
@@ -257,43 +244,52 @@ for trp.phi in Phi:
                 odmr.doV()
                 odmr.Temp = 41600000000
                 odmr.load_rho0_thermal(odmr.Temp)
-                vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=True))
+                vals = sorted(trp.evals(trp.D, trp.E, trp.B, trp.theta, trp.phi, mol_basis=False))
                 x1 = (vals[1].real - vals[0].real)
                 x2 = (vals[2].real - vals[0].real)
-                LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1)/ tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
-                LambdaMepr[index_p][index_a] = odmr.chi1(2*math.pi*freqDC2[i])
-                print math.exp(- vals[0] / odmr.Temp), math.exp(- vals[1] /odmr.Temp),math.exp(- vals[2] /odmr.Temp)
-                print (odmr.rho0[2]-odmr.rho0[0]), (odmr.rho0[1]-odmr.rho0[0])
-                print odmr.chi1(2*math.pi*freqDC2[i]), odmr.rho0
-                print odmr.V
+                LambdaM[index_p][index_a] = ((1.0 / (math.pow(((freqDC2[i] - x1) / tau), 2.0) + 1.0)) + (1.0 / (math.pow(((freqDC2[i] - x2) / tau), 2.0) + 1.0))) * math.sin(trp.theta)
+                LambdaMepr[index_p][index_a] = odmr.chi1(2*math.pi*freqDC2[i]).real
                 index_p += 1
                 index_B += 1
         index_a += 1
         index_Theta += 1
     index_Phi += 1
 
-LamInv = np.linalg.pinv(LambdaM)
 Experiment = IntensityDC2.flat
-pVec1 = np.dot(LamInv, Experiment)
 
-# read weights from a file
-pMatrix = np.reshape(pVec1, (len(Phi), len(Theta)))
-TheoryVec = np.dot(LambdaM, pVec1)
-TheoryMatr = np.reshape(TheoryVec, (765, 29))
+pVec1, rnorm1 = nnls(LambdaM,Experiment)
+pMatrix1 = np.reshape(pVec1, (len(Phi_deg),len(Phi_deg)))
+TheoryVec1 = np.dot(LambdaMepr, pVec1)
+TheoryMatr1 = np.reshape(TheoryVec1, (765, 29))
 
-pVec2, rnorm1 = nnls(LambdaM,Experiment)
-pMatrix2 = np.reshape(pVec2, (len(Phi), len(Theta)))
-TheoryVec2 = np.dot(LambdaM, pVec2)
+pVec2, rnorm2 = nnls(LambdaMepr,Experiment)
+pMatrix2 = np.reshape(pVec2, (len(Phi_deg),len(Phi_deg)))
+TheoryVec2 = np.dot(LambdaMepr, pVec2)
 TheoryMatr2 = np.reshape(TheoryVec2, (765, 29))
 
-pVec3, rnorm2 = nnls(LambdaMepr,Experiment)
-pMatrix3 = np.reshape(pVec3, (len(Phi), len(Theta)))
-TheoryVec3 = np.dot(LambdaMepr, pVec3)
-TheoryMatr3 = np.reshape(TheoryVec3, (765, 29))
-
-gnufile4 = open('TheoryFromWeights45nnlsEPR.dat', 'w+')
+gnufile1 = open('TheoryFromWeights2_5nnls.dat', 'w+')
 for i in xrange(765):
     for j in xrange(29):
-        gnufile4.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '  ' + str(TheoryMatr3[i][j]) + '\n')
+        gnufile1.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j])  + '  ' + str(TheoryMatr1[i][j]) + '\n')
+    gnufile1.write("\n")
+gnufile1.close
+
+gnufile2 = open('TheoryFromWeights5nnlsEPR.dat', 'w+')
+for i in xrange(765):
+    for j in xrange(29):
+        gnufile2.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j])  + '  ' + str(TheoryMatr2[i][j]) + '\n')
+    gnufile2.write("\n")
+gnufile2.close
+
+gnufile3 = open('WeightsAngles5.dat', 'w+')
+for i in xrange(Na):
+    for j in xrange(Na):
+        gnufile3.write(str(Phi_deg[i]) + '  ' + str(Theta_deg[j]) + '  ' + str(pMatrix1[i][j]) + '  ' + str(pMatrix2[i][j]) + '\n')
+    gnufile3.write("\n")
+gnufile3.close
+gnufile4 = open('WeightsAngles5Lambda.dat', 'w+')
+for i in xrange(Np):
+    for j in xrange(Na2):
+        gnufile4.write(str(LambdaM[i][j]) + '  ' + '\n')
     gnufile4.write("\n")
 gnufile4.close

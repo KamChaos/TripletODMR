@@ -248,27 +248,27 @@ class ODMR_Signal :
         sum = 0
         for i in range(self.spins.matrix_size) : 
             rho0_i = math.exp(- self.spins.eval[i] / Temp)
-            self.rho0[i] = rho_i
-            sum += rho_i
+            self.rho0[i] = rho0_i
+            sum += rho0_i
         self.rho0 /= sum
-
+    """
     def load_rho0_from_singlet(self) : 
         sum = 0
         for i in range(self.spins.matrix_size) : 
             self.rho0[i] = self.Sproj_eig_basis[i, i].real
             sum += self.rho0[i]
         self.rho0 /= sum
+    """
 
     def chi1(self, omega):
-       c1 = 0j
-       for m in range(self.spins.matrix_size): 
-           for n in range(self.spins.matrix_size):       
-               # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here 
-               Vmn = self.V[m, n]
-               Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
-               c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / ( self.omega_nm(n, m) - omega - 1j * self.gamma );
-       return c1
-
+        c1 = 0j
+        for m in range(self.spins.matrix_size):
+            for n in range(self.spins.matrix_size):
+                # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here
+                Vmn = self.V[m, n]
+                Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
+                c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
+        return c1
 
     def find_rho2_explicit(self, omega) :
         for m in range(self.spins.matrix_size): 
@@ -319,6 +319,7 @@ def main():
         Nsamples = 5000
         triplet_pair.print_info()
 
+
         np.random.seed(1)
 
         quintet_max = 0.
@@ -365,13 +366,16 @@ def main():
 
             odmr_from_triplets = ODMR_Signal(triplet_pair)
             odmr_from_triplets.update_from_spin_hamiltonian()
-            odmr_from_triplets.load_rho0_from_singlet()
+            odmr_from_triplets.Temp = 1e7
+            odmr_from_triplets.load_rho0_thermal(odmr_from_triplets.Temp)
             odmr_from_triplets.gamma = 1e-2
             odmr_from_triplets.gamma_diag = 1e-2
         
             for count, omega in enumerate(B_span):
                 chi_B[count] += odmr_from_triplets.chi1(omega)/N_average
-                odmr_B[count] += odmr_from_triplets.odmr(omega)/N_average 
+                odmr_B[count] += odmr_from_triplets.odmr(omega)/N_average
+
+        print odmr_from_triplets.V
 
         for count, omega in enumerate(B_span):
             sys.stderr.write("%g   %g   %g   %g\n" % ( omega, chi_B[count].real, chi_B[count].imag, odmr_B[count] ))

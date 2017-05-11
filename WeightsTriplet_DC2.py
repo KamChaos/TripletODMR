@@ -156,13 +156,13 @@ for i in range(120):
         IntensityDC2[i, :] = dataDC2[i * 2500:(i + 1) * 2500, 3]
         print(IntensityDC2[i, :], i)
 """
-"""
+
 pl.figure()
 pl.pcolor(freqDC2, fieldDC2, IntensityDC2)
 pl.xlabel(" Frequency")
 pl.ylabel(" B (T)")
 pl.show()
-"""
+
 #df = pd.read_csv('testupto30_clear.csv')
 
 
