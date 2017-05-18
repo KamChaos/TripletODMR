@@ -368,6 +368,25 @@ def ranges_for_cycles(nAng, nField):
     max_field = 81
     return np.arange(0, max_ang, max_ang/nAng), np.arange(0, max_field, 81/nField)
 
+def output(nAng, freqs, fields, lambda_filename, test_filename, Chi):
+    Lfile = open(lambda_filename, 'w+')
+    for k in xrange(int(nAng * nAng)):
+        index_p = 0
+        for Field in fields:
+            for Freq in freqs:
+                Lfile.write(str(Freq) + '  ' + str(Field) + '   ' + str(Chi[index_p][k]) + '   ' + str(ChiIm[index_p][k]) + '\n')
+                index_p += 1
+            Lfile.write("\n")
+
+    Lfile.close
+    Tfile = open(test_filename, 'w+')
+    index_p = 0
+    for Freq in freqs:
+        Tfile.write(str(Freq) + '   ' + str(Chi[index_p][4]) + '\n')
+        index_p += 1
+    Tfile.write("\n")
+    Tfile.close
+
 def main():
     freqDC2, fieldDC2, IntensityDC2 = load_data("testupto30up.txt", 325, 725)
     triplet = TwoTriplets()
@@ -397,15 +416,15 @@ def main():
             index_a += 1
             index_Theta += 1
         index_Phi += 1
-    Lfile = open('LambdasNew.dat', 'w+')
-    for k in xrange(int(nAng*nAng)):
-        index_p = 0
-        for Field in fieldDC2:
-            for Freq in freqDC2:
-                Lfile.write(str(Freq) + '  ' + str(Field) + '   ' + str(Chi[index_p][k]) + '   ' + str(ChiIm[index_p][k]) + '\n')
-                index_p += 1
-            Lfile.write("\n")
 
-    Lfile.close
+    Experiment = IntensityDC2.flat
+    pVec, rnorm1 = nnls(Chi, Experiment)
+    pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
+    TheoryVec = np.dot(Chi, pVec)
+    TheoryMatr2 = np.reshape(TheoryVec, (len(freqDC2), len(fieldDC2)))
+
+    output(nAng, freqDC2, fieldDC2, 'LambdasNew.dat', 'TestNew.dat',Chi)
+
+
 
 main()
