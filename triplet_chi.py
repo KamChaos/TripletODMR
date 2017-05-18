@@ -1,3 +1,4 @@
+
 import numpy as np
 from numpy.linalg import eig
 import cmath 
@@ -90,8 +91,7 @@ class Rotation :
 
 
     def random(self) : 
-        V = 2. * math.pi * np.random.random(), np.arccos( 2.0 * np.random.random() - 1.0 ), 2. * math.pi * np.random.random()
-        self.euler_angles( V )
+        self.euler_angles( 2. * math.pi * np.random.random(), np.arccos( 2.0 * np.random.random() - 1.0 ), 2. * math.pi * np.random.random() )
 
 
 
@@ -247,28 +247,28 @@ class ODMR_Signal :
     def load_rho0_thermal(self, Temp):  
         sum = 0
         for i in range(self.spins.matrix_size) : 
-            rho0_i = math.exp(- self.spins.eval[i] / Temp)
-            self.rho0[i] = rho0_i
-            sum += rho0_i
+            rho_i = math.exp(- self.spins.eval[i] / Temp)
+            self.rho0[i] = rho_i
+            sum += rho_i
         self.rho0 /= sum
-    """
+
     def load_rho0_from_singlet(self) : 
         sum = 0
         for i in range(self.spins.matrix_size) : 
             self.rho0[i] = self.Sproj_eig_basis[i, i].real
             sum += self.rho0[i]
         self.rho0 /= sum
-    """
 
     def chi1(self, omega):
-        c1 = 0j
-        for m in range(self.spins.matrix_size):
-            for n in range(self.spins.matrix_size):
-                # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here
-                Vmn = self.V[m, n]
-                Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
-                c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / (self.omega_nm(n, m) - omega - 1j * self.gamma);
-        return c1
+       c1 = 0j
+       for m in range(self.spins.matrix_size): 
+           for n in range(self.spins.matrix_size): 	     
+               # the contribution to chi1 vanishes for n == m, whether gamma is the same for diagonal and non diagonal elements is not relvant here 
+               Vmn = self.V[m, n]
+               Vmn_abs2 = Vmn.real * Vmn.real + Vmn.imag * Vmn.imag
+               c1 -= (self.rho0[m] - self.rho0[n]) * Vmn_abs2 / ( self.omega_nm(n, m) - omega - 1j * self.gamma );
+       return c1
+
 
     def find_rho2_explicit(self, omega) :
         for m in range(self.spins.matrix_size): 
@@ -306,82 +306,105 @@ class ODMR_Signal :
        return odmr_amp.real
 
     
-    
+def chi_spectra_triplet(triplet, omega_range, B, theta, phi) :
+    triplet.B = B
+    triplet.phi = phi
+    triplet.theta = theta
+    triplet.J = 0j
+    triplet.Jdip = 0j
 
+    V1 = Rotation()
+    V1.euler_angles(phi, theta, 0)
+    Ur = random_unit_vector()
+    triplet.load_field_basis_Hamiltonian( V1, V1, Ur )
+    triplet.diag()
+        
+    odmr_from_triplets = ODMR_Signal(triplet)
+    odmr_from_triplets.gamma = 1
+    odmr_from_triplets.gamma_diag = 1
+    odmr_from_triplets.update_from_spin_hamiltonian()
+    odmr_from_triplets.load_rho0_thermal(3000.0)
+    
+    chi_vec = [ ]
+
+    for omega in omega_range:
+        chi = odmr_from_triplets.chi1(2*omega*math.pi)
+        chi_vec.append( chi.imag )
+    return chi_vec
+
+
+
+
+def load_data(filename, freq_start, freq_stop) : 
+    dataDC2 = np.loadtxt(filename, comments='%')  # , usecols=(0,1,3),unpack=True)
+
+    freq_index_start = None
+    freq_index_stop = None
+
+    index = 0
+    while dataDC2[index, 0] < dataDC2[index+1, 0] : 
+        if freq_index_start is None and dataDC2[index, 0]*1e-6 > freq_start:
+            freq_index_start = index
+        if freq_index_stop is None and dataDC2[index, 0]*1e-6 > freq_stop:
+            freq_index_stop = index
+        index += 1
+    freq_total_length = index+1
+    
+    freqDC2 = (dataDC2[freq_index_start:freq_index_stop, 0]) / 1e6
+    Bfield_size = int(len(dataDC2)/freq_total_length)
+
+    fieldDC2 = np.zeros(Bfield_size)
+    freq_size = freq_index_stop - freq_index_start 
+    IntensityDC2 = np.zeros((Bfield_size, freq_size))
+    
+    for i in xrange(Bfield_size):
+        fieldDC2[i] = np.mean(dataDC2[i * freq_total_length:(i + 1) * freq_total_length, 1])
+        IntensityDC2[i, :] = dataDC2[i * freq_total_length + freq_index_start:i * freq_total_length + freq_index_stop, 3]
+ 
+    return (freqDC2, fieldDC2, IntensityDC2)
+
+def ranges_for_cycles(nAng, nField):
+    max_ang = math.radians(90.0) * (1.0 / nAng + 1.0)
+    max_field = 81
+    return np.arange(0, max_ang, max_ang/nAng), np.arange(0, max_field, 81/nField)
 
 def main():
-        triplet_pair = TwoTriplets()
-        triplet_pair.D = 487.9
-        triplet_pair.E = 72.9
-        bb = [0, 2.8]
-        triplet_pair.J = 0.0
-        triplet_pair.B = 0
-        triplet_pair.phi = math.radians(33)
-        triplet_pair.theta = math.radians(27)
-        triplet_pair.Jdip = 0.1
-        Nsamples = 5000
-        triplet_pair.print_info()
-
-
-        np.random.seed(1)
-
-        quintet_max = 0.
-        for count in range(Nsamples):
-            V1 = 2. * math.pi * np.random.rand(3)
-            V2 = 2. * math.pi * np.random.rand(3)
-            Ur = random_unit_vector()
-            triplet_pair.load_field_basis_Hamiltonian( Rotation(V1), Rotation(V2), Ur )
-            triplet_pair.diag()
-            si = 0 
-            for i in range(0,9):
-                si += math.pow(triplet_pair.quintet_content(i), 4.0)
-
-            if si > quintet_max:
-                quintet_max = si
-                quintet_angles1 = V1
-                quintet_angles2 = V2
-                quintet_rdip = Ur
-
-        print("# quintet_max " + str(quintet_max))
-        print("# Euler angles ")
-        print("%g   %g   %g" % ( quintet_angles1[0], quintet_angles1[1], quintet_angles1[2] ) )
-        print("%g   %g   %g" % ( quintet_angles2[0], quintet_angles2[1], quintet_angles2[2] ) )
-        print("# Rdip ")
-        print("%g %g %g" % ( quintet_rdip[0], quintet_rdip[1], quintet_rdip[2] ) )
-        triplet_pair.load_field_basis_Hamiltonian( Rotation(quintet_angles1), Rotation(quintet_angles2), quintet_rdip )    
-        triplet_pair.diag()
-        print("# qunitet/triplet projections at B = " + str(triplet_pair.B))
-        for i in range(0,9): 
-            print("%g   %g   %g   %g" % ( triplet_pair.quintet_content(i), triplet_pair.triplet_content(i), triplet_pair.singlet_content(i), triplet_pair.sz_elem(i) ) )
-
-        B_span = np.arange(0.0, 2.0 * triplet_pair.B, 1e-3 * triplet_pair.B)
-        chi_B = [ 0j ] * len(B_span)
-        odmr_B = [ 0 ] * len(B_span)
-        N_average = 10
-
-        for sample in range(N_average):
-            rot_for_sample = Rotation( 2. * math.pi * np.random.rand(3) )
-            R1 = np.dot( rot_for_sample.matrix(), Rotation(quintet_angles1).matrix() )
-            R2 = np.dot( rot_for_sample.matrix(), Rotation(quintet_angles2).matrix() ) 
-            Rdip = np.dot( rot_for_sample.matrix(), quintet_rdip )
-            triplet_pair.load_field_basis_Hamiltonian( Rotation(R1), Rotation(R2), Rdip )    
-            triplet_pair.diag()
-
-            odmr_from_triplets = ODMR_Signal(triplet_pair)
-            odmr_from_triplets.update_from_spin_hamiltonian()
-            odmr_from_triplets.Temp = 1e7
-            odmr_from_triplets.load_rho0_thermal(odmr_from_triplets.Temp)
-            odmr_from_triplets.gamma = 1e-2
-            odmr_from_triplets.gamma_diag = 1e-2
-        
-            for count, omega in enumerate(B_span):
-                chi_B[count] += odmr_from_triplets.chi1(omega)/N_average
-                odmr_B[count] += odmr_from_triplets.odmr(omega)/N_average
-
-        print odmr_from_triplets.V
-
-        for count, omega in enumerate(B_span):
-            sys.stderr.write("%g   %g   %g   %g\n" % ( omega, chi_B[count].real, chi_B[count].imag, odmr_B[count] ))
-        
+    freqDC2, fieldDC2, IntensityDC2 = load_data("testupto30up.txt", 325, 725)
+    triplet = TwoTriplets()
+    triplet.D = 487.9
+    triplet.E = 72.9
+    nAng = 5.
+    nField = float(len(fieldDC2))
+    Angles, MagFields = ranges_for_cycles(nAng, nField) #angles range in radians
+    Chi = np.zeros((int(len(freqDC2)*len(fieldDC2)),int(nAng*nAng)))
+    ChiIm = np.zeros((len(freqDC2)*len(fieldDC2),int(nAng*nAng)))
+    index_Phi = 0
+    index_a = 0
+    Lfile = open('LambdaNew.dat', 'w+')
+    for Phi in Angles:
+        index_Theta = 0
+        for Theta in Angles:
+            index_B = 0
+            index_p = 0
+            for Field in MagFields:
+                chi_freq  = chi_spectra_triplet(triplet, freqDC2, Field, Theta, Phi)
+                index_int = len(chi_freq)
+                a = np.asarray(chi_freq)
+                b = int(index_p + index_int)
+                Chi[index_p:b,index_a] = a[:]
+                index_p += index_int
+                index_B += 1
+            index_a += 1
+            index_Theta += 1
+        index_Phi += 1
+    Lfile = open('LambdasNew.dat', 'w+')
+    for k in xrange(int(nAng*nAng)):
+        index_p = 0
+        for Field in fieldDC2:
+            for Freq in freqDC2:
+                Lfile.write(str(Freq) + '  ' + str(Field) + '   ' + str(Chi[index_p][k]) + '   ' + str(ChiIm[index_p][k]) + '\n')
+            Lfile.write("\n")
+            index_p += 1
+    Lfile.close
 
 main()

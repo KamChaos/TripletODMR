@@ -197,7 +197,7 @@ for i in xrange(29):
     fieldDC2[i] = np.mean(dataDC2[i * 5000:(i + 1) * 5000, 1])
     IntensityDC2[i, :] = dataDC2[i * 5000 + 650:i * 5000 + 1415, 3]
 
-dA = 45.0  # 45
+dA = 5.0  # 45
 a = math.radians(90.0) * (1.0 / dA + 1.0)  # 91 degree for theta and phi
 b = a / dA  # 45 #step for angles
 
@@ -291,9 +291,20 @@ pMatrix3 = np.reshape(pVec3, (len(Phi), len(Theta)))
 TheoryVec3 = np.dot(LambdaMepr, pVec3)
 TheoryMatr3 = np.reshape(TheoryVec3, (765, 29))
 
-gnufile4 = open('TheoryFromWeights45nnlsEPR.dat', 'w+')
+gnufile = open('TheoryFromWeights5nnlsEPR.dat', 'w+')
+Lfile = open('Lambdas5.dat', 'w+')
+
+for k in xrange(Na):
+    for i in xrange(765):
+        index_p = 0
+        for j in xrange(29):
+            Lfile.write(str(freqDC2[i])+ '  ' + str(fieldDC2[j]) + '   ' + str(LambdaM[index_p][k])  + '   ' + str(LambdaMepr[index_p][k]))
+        index_p += 1
+    Lfile.write("\n")
+Lfile.close
+
 for i in xrange(765):
     for j in xrange(29):
-        gnufile4.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j]) + '  ' + str(TheoryMatr2[i][j]) + '  ' + str(TheoryMatr3[i][j]) + '\n')
-    gnufile4.write("\n")
-gnufile4.close
+        gnufile.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j])+ '  ' + str(TheoryMatr[i][j]) + '  ' + str(TheoryMatr2[i][j]) + '  ' + str(TheoryMatr3[i][j]) + '\n')
+    gnufile.write("\n")
+gnufile.close
