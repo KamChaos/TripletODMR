@@ -403,8 +403,9 @@ def main():
         for Field in fieldDC2:
             for Freq in freqDC2:
                 Lfile.write(str(Freq) + '  ' + str(Field) + '   ' + str(Chi[index_p][k]) + '   ' + str(ChiIm[index_p][k]) + '\n')
+                index_p += 1
             Lfile.write("\n")
-            index_p += 1
+
     Lfile.close
 
 main()
