@@ -436,4 +436,4 @@ for i in xrange(765):
     for j in xrange(29):
         gnufile.write(str(freqDC2[i]) + '  ' + str(fieldDC2[j])+ '  ' + str(TheoryMatr[i][j]) + '  ' + str(TheoryMatr2[i][j]) + '  ' + str(TheoryMatr3[i][j]) + '\n')
     gnufile.write("\n")
-gnufile.clos
+gnufile.close

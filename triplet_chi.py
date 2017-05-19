@@ -4,7 +4,8 @@ from numpy.linalg import eig
 import cmath 
 import math
 import sys
-from functools import reduce 
+from functools import reduce
+import scipy
 
 def random_unit_vector() : 
     phi = 2.0 * math.pi * np.random.random()
@@ -93,8 +94,6 @@ class Rotation :
     def random(self) : 
         self.euler_angles( 2. * math.pi * np.random.random(), np.arccos( 2.0 * np.random.random() - 1.0 ), 2. * math.pi * np.random.random() )
 
-
-
 class TripletHamiltonian : 
         def __init__ (self) :
                 self.Id = np.matrix('1 0 0; 0 1 0; 0 0 1', dtype=np.complex_)
@@ -127,8 +126,6 @@ class TripletHamiltonian :
                         return np.linalg.eigvalsh(self.spin_hamiltonian_mol_basis(D, E, B, theta, phi))
                 else: 
                         return np.linalg.eigvalsh(self.spin_hamiltonian_field_basis(D, E, B, theta, phi))
-                
-
 
 class TwoTriplets :
         def __init__ (self) :
@@ -214,7 +211,6 @@ class TwoTriplets :
             print("# B %g" % self.B)
             print("# J %g" % self.J)
             print("# Jip %g" % self.Jdip)
-
 
 class ODMR_Signal : 
     """ 
@@ -305,7 +301,6 @@ class ODMR_Signal :
 
        return odmr_amp.real
 
-    
 def chi_spectra_triplet(triplet, omega_range, B, theta, phi) :
     triplet.B = B
     triplet.phi = phi
@@ -331,9 +326,6 @@ def chi_spectra_triplet(triplet, omega_range, B, theta, phi) :
         chi = odmr_from_triplets.chi1(2*omega*math.pi)
         chi_vec.append( chi.imag )
     return chi_vec
-
-
-
 
 def load_data(filename, freq_start, freq_stop) : 
     dataDC2 = np.loadtxt(filename, comments='%')  # , usecols=(0,1,3),unpack=True)
@@ -368,7 +360,14 @@ def ranges_for_cycles(nAng, nField):
     max_field = 81
     return np.arange(0, max_ang, max_ang/nAng), np.arange(0, max_field, 81/nField)
 
-def output(nAng, freqs, fields, lambda_filename, test_filename, Chi):
+def build_theory(Chi, IDC2, nAng, lenfr,lenf):
+    Experiment = IDC2.flat
+    pVec, rnorm1 = scipy.nnls(Chi, Experiment)
+    pMatrix = np.reshape(pVec, (nAng, nAng))
+    TheoryVec = np.dot(Chi, pVec)
+    return np.reshape(TheoryVec, (lenfr, lenf))
+
+def output(nAng, freqs, fields, lambda_filename, test_filename, Chi, theory_filename, TheoryMatr):
     Lfile = open(lambda_filename, 'w+')
     for k in xrange(int(nAng * nAng)):
         index_p = 0
@@ -386,6 +385,17 @@ def output(nAng, freqs, fields, lambda_filename, test_filename, Chi):
         index_p += 1
     Tfile.write("\n")
     Tfile.close
+
+    Theoryfile = open(theory_filename, 'w+')
+    i = 0
+    for Freq in freqs:
+        j = 0
+        for Field in fields:
+            Theoryfile.write(str(Freq) + '  ' + str(Field) + '  ' + str(TheoryMatr[i][j]) + '\n')
+            j += 1
+        gnufile.write("\n")
+        i +=1
+    gnufile.close
 
 def main():
     freqDC2, fieldDC2, IntensityDC2 = load_data("testupto30up.txt", 325, 725)
@@ -417,13 +427,8 @@ def main():
             index_Theta += 1
         index_Phi += 1
 
-    Experiment = IntensityDC2.flat
-    pVec, rnorm1 = nnls(Chi, Experiment)
-    pMatrix = np.reshape(pVec, (len(Phi), len(Theta)))
-    TheoryVec = np.dot(Chi, pVec)
-    TheoryMatr2 = np.reshape(TheoryVec, (len(freqDC2), len(fieldDC2)))
-
-    output(nAng, freqDC2, fieldDC2, 'LambdasNew.dat', 'TestNew.dat',Chi)
+    TheoryMatr = build_theory(Chi, IntensityDC2, nAng, len(freqDC2),len(fieldDC2))
+    output(nAng, freqDC2, fieldDC2, 'LambdasNew.dat', 'TestNew.dat', Chi, 'TheoryNew.dat', TheoryMatr)
 
 
 
